@@ -1,0 +1,15 @@
+### Create Institution Profile
+POST http://localhost:5000/api/institutions
+Content-Type: application/json
+Accept: application/json
+
+{
+  "institutionName": "ABC School",
+  "type": "school",
+  "address": "123 Main St",
+  "city": "Delhi",
+  "state": "Delhi",
+  "size": 500,
+  "website": "https://abcschool.com",
+  "description": "Leading educational institution"
+}

@@ -1,0 +1,66 @@
+Collection,Purpose,Key Fields,Indexes,Relationships
+admin_users,Store admin accounts with roles,"• email (unique)
+• password_hash
+• role (enum: super_admin, moderator, etc.)
+• permissions (array)
+• two_fa_enabled
+• last_login
+• created_at","email, role",→ admin_audit_logs
+admin_audit_logs,Track all admin actions,"• admin_id (ref: admin_users)
+• action_type (enum: user_suspend, job_approve, etc.)
+• target_id (user/job/review ID)
+• old_value (JSON)
+• new_value (JSON)
+• ip_address
+• timestamp","admin_id, action_type, timestamp",← admin_users
+system_config,Store platform configuration,"• config_key (unique)
+• config_value (JSON)
+• updated_by (ref: admin_users)
+• updated_at",config_key,"Keys: site_maintenance, registration_enabled, email_enabled, whatsapp_enabled, payment_enabled"
+moderation_queue,Jobs/reviews awaiting approval,"• item_type (enum: job, review)
+• item_id
+• status (pending, approved, rejected)
+• submitted_by
+• reviewed_by (ref: admin_users)
+• rejection_reason
+• created_at
+• reviewed_at","status, item_type, created_at","→ jobs, reviews"
+email_templates,Customizable email templates,"• template_name (unique)
+• subject
+• html_body
+• text_body
+• variables (array of placeholders)
+• updated_by (ref: admin_users)
+• updated_at",template_name,"Templates: welcome, application_received, job_match, etc."
+site_backups,Track backup operations,"• backup_type (auto, manual)
+• backup_location (S3 URL/path)
+• backup_size_mb
+• collections_included (array)
+• triggered_by (ref: admin_users)
+• status (success, failed)
+• created_at","created_at, status",← admin_users
+geographic_config,Location-based availability,"• state_name
+• is_active (boolean)
+• activation_date
+• deactivation_date
+• updated_by (ref: admin_users)","state_name, is_active",Used for phased rollout
+broadcast_campaigns,Track mass communications,"• campaign_name
+• channel (email, whatsapp, both)
+• target_segment (JSON filters)
+• message_content
+• sent_count
+• delivered_count
+• opened_count
+• created_by (ref: admin_users)
+• scheduled_at
+• sent_at","created_by, scheduled_at",← admin_users
+support_tickets,Customer support management,"• ticket_id (auto-increment)
+• user_id
+• user_type (teacher, institution)
+• subject
+• description
+• status (open, in_progress, resolved)
+• priority (low, medium, high, critical)
+• assigned_to (ref: admin_users)
+• created_at
+• resolved_at","status, assigned_to, created_at","→ users, ← admin_users"

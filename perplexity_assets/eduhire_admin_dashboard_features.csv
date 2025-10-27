@@ -1,0 +1,44 @@
+Module,Feature,Function,Use Case,Priority,Complexity,Week
+User Management,Enable/Disable User Accounts,Suspend/ban teachers or institutions (temporary/permanent),"Handle policy violations, spam accounts, fraudulent users",Critical,Low,Week 4
+User Management,View Complete User Profiles,"Access detailed user data, activity logs, applications history","Customer support, dispute resolution, quality assurance",Critical,Medium,Week 4
+User Management,Edit User Details,"Modify profiles, correct errors, update verification status","Fix user mistakes, manual verification, data corrections",High,Medium,Week 4
+User Management,Manual User Account Creation,Create teacher/institution accounts for partnerships,"Onboard partners who need assistance, bulk import",Medium,Low,Post-Launch
+User Management,User Activity Analytics,"Track logins, searches, applications, engagement metrics","Identify inactive users, engagement patterns, fraud detection",High,Medium,Week 4
+User Management,Bulk User Operations,"Mass email, bulk status changes, batch exports","Announcements, policy updates, data exports",Medium,High,Post-Launch
+Payment Management,Enable/Disable Payment Gateway,Turn Razorpay on/off globally or for specific users,"Maintenance, suspected fraud, testing",Critical,Low,Week 4
+Payment Management,View Payment Transactions,Complete transaction history with filters,"Financial reconciliation, dispute resolution, audits",Critical,Medium,Week 4
+Payment Management,Manual Subscription Management,"Upgrade/downgrade plans, grant free access, refunds","Customer service, promotional offers, error corrections",High,Medium,Week 4
+Payment Management,Payment Method Configuration,"Add/remove payment options, change Razorpay keys","Switch payment providers, add new payment methods",Medium,Medium,Post-Launch
+Payment Management,Revenue Analytics Dashboard,"MRR, churn rate, revenue by plan, lifetime value","Business intelligence, financial planning",High,High,Post-Launch
+System Controls,Enable/Disable User Registration,Turn on/off new signups (teachers/institutions separately),"Maintenance, controlled beta launch, capacity management",Critical,Low,Week 4
+System Controls,Site-Wide Maintenance Mode,Disable entire website with custom message,"Major updates, server maintenance, emergency fixes",Critical,Low,Week 4
+System Controls,Geographic Availability Control,Enable/disable platform access by state/city,"Phased rollout, regional testing, compliance issues",High,Medium,Post-Launch
+System Controls,Feature Flags Management,Turn features on/off without code deployment,"A/B testing, gradual rollouts, emergency disables",High,Medium,Post-Launch
+System Controls,Rate Limiting Configuration,"Set API limits, prevent abuse, throttle requests","DDoS protection, scraping prevention, resource management",Medium,High,Post-Launch
+Communication Management,Enable/Disable Email Services,"Turn off all emails or specific types (notifications, marketing)","Email service issues, cost control, maintenance",Critical,Low,Week 4
+Communication Management,Enable/Disable WhatsApp Alerts,Control WhatsApp notifications individually or globally,"Cost management, user complaints, service issues",High,Low,Week 4
+Communication Management,Email Template Editor,"Modify email content, format, styling, recipients","Improve messaging, localization, A/B testing",High,Medium,Post-Launch
+Communication Management,Broadcast Messaging,Send custom emails/WhatsApp to user segments,"Announcements, promotional campaigns, updates",Medium,Medium,Post-Launch
+Communication Management,Communication Logs & Analytics,"Track email deliverability, open rates, WhatsApp delivery","Monitor service health, optimize messaging",Medium,Medium,Post-Launch
+Content Management,Job Posting Moderation,Approve/reject/edit job listings before going live,"Quality control, prevent spam, ensure policy compliance",Critical,Medium,Week 4
+Content Management,Review Moderation,Approve/flag/delete institution and teacher reviews,"Prevent fake reviews, handle disputes, maintain quality",Critical,Medium,Week 4
+Content Management,Page Editor (CMS),"Create/modify landing pages, about us, blog posts","Content updates without code changes, SEO optimization",High,High,Post-Launch
+Content Management,Filter Management,"Add/remove/modify search filters (subjects, locations, levels)","Add new subjects, update cities, refine search",High,Medium,Week 4
+Content Management,Featured Jobs Management,"Manually feature jobs, set priorities, manage visibility","Premium service delivery, promotional campaigns",High,Low,Week 4
+Content Management,Social Media Link Manager,"Add/update links to Facebook, LinkedIn, YouTube, blog","Keep social presence updated, campaign tracking",Low,Low,Week 4
+Data Management,Automated Daily Backups,Schedule automatic database backups with retention policy,"Disaster recovery, data protection, compliance",Critical,Medium,Week 4
+Data Management,Manual Backup Creation,Trigger on-demand backups before major changes,"Pre-deployment safety, testing, migrations",Critical,Low,Week 4
+Data Management,Backup Location Configuration,"Set storage location (AWS S3, Google Cloud, local)","Cost optimization, compliance requirements, redundancy",High,Medium,Week 4
+Data Management,Data Export Tools,"Export users, jobs, applications, analytics to CSV/JSON","Reporting, analytics, partner integrations",High,Medium,Week 4
+Data Management,Data Anonymization,Anonymize personal data for analytics/sales,"Monetize data while protecting privacy, DPDP compliance",Medium,High,Post-Launch
+Admin Access Control,Role-Based Permissions (RBAC),"Create roles (Super Admin, Moderator, Support) with permissions","Team delegation, security, audit trails",High,High,Post-Launch
+Admin Access Control,Admin User Management,"Add/remove admin users, modify their permissions","Team scaling, access revocation, role changes",High,Medium,Post-Launch
+Admin Access Control,Activity Audit Logs,Track all admin actions with timestamps and user IDs,"Security audits, accountability, compliance",High,Medium,Post-Launch
+Admin Access Control,Two-Factor Authentication (2FA),Require 2FA for admin login,"Enhanced security, prevent unauthorized access",High,Medium,Post-Launch
+Analytics & Reporting,Real-Time Dashboard,"Live metrics: active users, applications, revenue, traffic","Monitor platform health, quick decision-making",High,High,Post-Launch
+Analytics & Reporting,Custom Report Builder,"Create custom reports with date ranges, filters, metrics","Business intelligence, investor reporting, analysis",Medium,High,Post-Launch
+Analytics & Reporting,User Funnel Analytics,Track conversion from signup → profile → application,"Identify bottlenecks, optimize conversion rates",Medium,High,Post-Launch
+Analytics & Reporting,Fraud Detection Dashboard,"Flag suspicious activity, duplicate accounts, fake reviews","Platform integrity, prevent abuse, protect users",Medium,High,Post-Launch
+Support Tools,User Impersonation (View As),Log in as any user to troubleshoot issues,"Customer support, bug reproduction, training",Medium,Medium,Post-Launch
+Support Tools,Support Ticket System,"Manage user complaints, track resolution, internal notes","Organize customer support, SLA tracking",Medium,High,Post-Launch
+Support Tools,Automated Alerts,"Get notified of critical events (downtime, errors, fraud)","Proactive issue resolution, system monitoring",Medium,Medium,Post-Launch

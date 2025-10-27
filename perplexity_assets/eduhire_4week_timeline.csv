@@ -1,0 +1,25 @@
+Week,Focus Area,Tasks,Deliverables,Team Effort
+Week 1 (Days 1-7),Authentication & Database Setup,"• Setup MERN environment
+• MongoDB schema design
+• User authentication (JWT)
+• Basic profile pages
+• GitHub repository setup",Working login/signup for both user types,Full-time (8-10 hrs/day)
+Week 2 (Days 8-14),Core Job Functionality,"• Job posting form
+• Job listing page with search
+• Basic filtering (location, subject)
+• Application submission
+• Resume upload (Cloudinary)","Teachers can browse & apply, Institutions can post jobs",Full-time (8-10 hrs/day)
+Week 3 (Days 15-21),Advanced Features & UI,"• Advanced search/filters
+• Application dashboard (both sides)
+• Review/rating system
+• Email notifications
+• Featured jobs logic
+• Mobile responsive design",Complete application flow with notifications,Full-time (8-10 hrs/day)
+Week 4 (Days 22-30),Monetization & Launch Prep,"• Subscription tiers
+• Razorpay integration
+• Analytics setup
+• Security audit
+• Testing & bug fixes
+• Deploy to Vercel/Netlify
+• SEO basics
+• Social media pages",Live platform ready for beta users,Full-time (8-10 hrs/day)

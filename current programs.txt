@@ -1,0 +1,1816 @@
+the current programs i have 
+D:\Apps\PythonDocs\Eduhire\server\controllers\applicationController.js
+const Application = require('../models/Application');
+const Job = require('../models/Job');
+const TeacherProfile = require('../models/TeacherProfile');
+const InstitutionProfile = require('../models/InstitutionProfile');
+const User = require('../models/User');
+
+// @desc    Submit job application (Teacher)
+// @route   POST /api/applications/apply
+// @access  Private (Teacher only)
+exports.submitApplication = async (req, res) => {
+    try {
+        const { job_id, coverLetter } = req.body;
+        const userId = req.user.id;
+
+        // Validate required fields
+        if (!job_id || !coverLetter) {
+            return res.status(400).json({
+                error: 'Job ID and cover letter are required'
+            });
+        }
+
+        // Verify user is a teacher
+        const user = await User.findById(userId);
+        if (!user || user.userType !== 'teacher') {
+            return res.status(403).json({
+                error: 'Only teachers can apply for jobs'
+            });
+        }
+
+        // Get teacher profile
+        const teacherProfile = await TeacherProfile.findOne({ email: user.email });
+        if (!teacherProfile) {
+            return res.status(404).json({
+                error: 'Teacher profile not found. Please complete your profile first.'
+            });
+        }
+
+        // Check if resume exists
+        if (!teacherProfile.resume) {
+            return res.status(400).json({
+                error: 'Please upload your resume before applying'
+            });
+        }
+
+        // Verify job exists and is active
+        const job = await Job.findById(job_id);
+        if (!job) {
+            return res.status(404).json({
+                error: 'Job not found'
+            });
+        }
+
+        if (job.status !== 'active' || job.expiresAt < new Date()) {
+            return res.status(400).json({
+                error: 'This job posting is no longer active'
+            });
+        }
+
+        // Check for duplicate application
+        const existingApplication = await Application.findOne({
+            job_id: job_id,
+            teacher_id: teacherProfile._id
+        });
+
+        if (existingApplication) {
+            return res.status(400).json({
+                error: 'You have already applied for this job',
+                application: existingApplication
+            });
+        }
+
+        // Create new application
+        const application = new Application({
+            job_id: job_id,
+            teacher_id: teacherProfile._id,
+            institution_id: job.institutionid,
+            coverLetter: coverLetter.trim()
+        });
+
+        await application.save();
+
+        // Update job's application count
+        await Job.findByIdAndUpdate(job_id, {
+            $inc: { applicationscount: 1 }
+        });
+
+        res.status(201).json({
+            success: true,
+            message: 'Application submitted successfully',
+            application: application
+        });
+
+    } catch (error) {
+        console.error('Application submission error:', error);
+        
+        // Handle duplicate key error
+        if (error.code === 11000) {
+            return res.status(400).json({
+                error: 'You have already applied for this job'
+            });
+        }
+
+        res.status(500).json({
+            error: 'Failed to submit application',
+            details: error.message
+        });
+    }
+};
+
+// @desc    Get all applications for a teacher
+// @route   GET /api/applications/my
+// @access  Private (Teacher only)
+exports.getMyApplications = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        // Get teacher profile
+        const user = await User.findById(userId);
+        if (!user || user.userType !== 'teacher') {
+            return res.status(403).json({
+                error: 'Access denied'
+            });
+        }
+
+        const teacherProfile = await TeacherProfile.findOne({ email: user.email });
+        if (!teacherProfile) {
+            return res.status(404).json({
+                error: 'Teacher profile not found'
+            });
+        }
+
+        // Get all applications with job details
+        const applications = await Application.find({
+            teacher_id: teacherProfile._id
+        })
+        .populate({
+            path: 'job_id',
+            select: 'title subject level location salary employmentType status expiresAt institutionid',
+            populate: {
+                path: 'institutionid',
+                select: 'institutionName type location'
+            }
+        })
+        .sort({ appliedAt: -1 });
+
+        res.json({
+            success: true,
+            count: applications.length,
+            applications: applications
+        });
+
+    } catch (error) {
+        console.error('Get my applications error:', error);
+        res.status(500).json({
+            error: 'Failed to fetch applications',
+            details: error.message
+        });
+    }
+};
+
+// @desc    Get applications received for a specific job (Institution)
+// @route   GET /api/applications/received/:jobId
+// @access  Private (Institution only)
+exports.getApplicationsForJob = async (req, res) => {
+    try {
+        const { jobId } = req.params;
+        const userId = req.user.id;
+
+        // Verify user is institution
+        const user = await User.findById(userId);
+        if (!user || user.userType !== 'institution') {
+            return res.status(403).json({
+                error: 'Access denied'
+            });
+        }
+
+        // Get institution profile
+        const institutionProfile = await InstitutionProfile.findOne({ email: user.email });
+        if (!institutionProfile) {
+            return res.status(404).json({
+                error: 'Institution profile not found'
+            });
+        }
+
+        // Verify job belongs to this institution
+        const job = await Job.findById(jobId);
+        if (!job) {
+            return res.status(404).json({
+                error: 'Job not found'
+            });
+        }
+
+        if (job.institutionid.toString() !== institutionProfile._id.toString()) {
+            return res.status(403).json({
+                error: 'You can only view applications for your own jobs'
+            });
+        }
+
+        // Get all applications for this job
+        const applications = await Application.find({ job_id: jobId })
+            .populate({
+                path: 'teacher_id',
+                select: 'fullName email phone experience education subjects resume photo location'
+            })
+            .sort({ appliedAt: -1 });
+
+        res.json({
+            success: true,
+            jobTitle: job.title,
+            count: applications.length,
+            applications: applications
+        });
+
+    } catch (error) {
+        console.error('Get applications for job error:', error);
+        res.status(500).json({
+            error: 'Failed to fetch applications',
+            details: error.message
+        });
+    }
+};
+
+// @desc    Get all applications received by institution
+// @route   GET /api/applications/received
+// @access  Private (Institution only)
+exports.getAllReceivedApplications = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { status, jobId } = req.query;
+
+        // Verify user is institution
+        const user = await User.findById(userId);
+        if (!user || user.userType !== 'institution') {
+            return res.status(403).json({
+                error: 'Access denied'
+            });
+        }
+
+        const institutionProfile = await InstitutionProfile.findOne({ email: user.email });
+        if (!institutionProfile) {
+            return res.status(404).json({
+                error: 'Institution profile not found'
+            });
+        }
+
+        // Build query
+        const query = { institution_id: institutionProfile._id };
+        if (status) query.status = status;
+        if (jobId) query.job_id = jobId;
+
+        // Get applications
+        const applications = await Application.find(query)
+            .populate({
+                path: 'job_id',
+                select: 'title subject level location status'
+            })
+            .populate({
+                path: 'teacher_id',
+                select: 'fullName email phone experience education subjects resume'
+            })
+            .sort({ appliedAt: -1 });
+
+        res.json({
+            success: true,
+            count: applications.length,
+            applications: applications
+        });
+
+    } catch (error) {
+        console.error('Get all received applications error:', error);
+        res.status(500).json({
+            error: 'Failed to fetch applications',
+            details: error.message
+        });
+    }
+};
+
+// @desc    Shortlist an application (Institution)
+// @route   POST /api/applications/:id/shortlist
+// @access  Private (Institution only)
+exports.shortlistApplication = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.id;
+
+        // Verify user is institution
+        const user = await User.findById(userId);
+        if (!user || user.userType !== 'institution') {
+            return res.status(403).json({
+                error: 'Access denied'
+            });
+        }
+
+        const institutionProfile = await InstitutionProfile.findOne({ email: user.email });
+        if (!institutionProfile) {
+            return res.status(404).json({
+                error: 'Institution profile not found'
+            });
+        }
+
+        // Find application
+        const application = await Application.findById(id);
+        if (!application) {
+            return res.status(404).json({
+                error: 'Application not found'
+            });
+        }
+
+        // Verify application belongs to this institution
+        if (application.institution_id.toString() !== institutionProfile._id.toString()) {
+            return res.status(403).json({
+                error: 'You can only manage applications for your own jobs'
+            });
+        }
+
+        // Update status
+        application.status = 'shortlisted';
+        await application.save();
+
+        res.json({
+            success: true,
+            message: 'Application shortlisted successfully',
+            application: application
+        });
+
+    } catch (error) {
+        console.error('Shortlist application error:', error);
+        res.status(500).json({
+            error: 'Failed to shortlist application',
+            details: error.message
+        });
+    }
+};
+
+// @desc    Reject an application (Institution)
+// @route   POST /api/applications/:id/reject
+// @access  Private (Institution only)
+exports.rejectApplication = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.id;
+
+        // Verify user is institution
+        const user = await User.findById(userId);
+        if (!user || user.userType !== 'institution') {
+            return res.status(403).json({
+                error: 'Access denied'
+            });
+        }
+
+        const institutionProfile = await InstitutionProfile.findOne({ email: user.email });
+        if (!institutionProfile) {
+            return res.status(404).json({
+                error: 'Institution profile not found'
+            });
+        }
+
+        // Find application
+        const application = await Application.findById(id);
+        if (!application) {
+            return res.status(404).json({
+                error: 'Application not found'
+            });
+        }
+
+        // Verify application belongs to this institution
+        if (application.institution_id.toString() !== institutionProfile._id.toString()) {
+            return res.status(403).json({
+                error: 'You can only manage applications for your own jobs'
+            });
+        }
+
+        // Update status
+        application.status = 'rejected';
+        await application.save();
+
+        res.json({
+            success: true,
+            message: 'Application rejected',
+            application: application
+        });
+
+    } catch (error) {
+        console.error('Reject application error:', error);
+        res.status(500).json({
+            error: 'Failed to reject application',
+            details: error.message
+        });
+    }
+};
+
+// @desc    Withdraw application (Teacher)
+// @route   DELETE /api/applications/:id
+// @access  Private (Teacher only)
+exports.withdrawApplication = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.id;
+
+        // Verify user is teacher
+        const user = await User.findById(userId);
+        if (!user || user.userType !== 'teacher') {
+            return res.status(403).json({
+                error: 'Access denied'
+            });
+        }
+
+        const teacherProfile = await TeacherProfile.findOne({ email: user.email });
+        if (!teacherProfile) {
+            return res.status(404).json({
+                error: 'Teacher profile not found'
+            });
+        }
+
+        // Find application
+        const application = await Application.findById(id);
+        if (!application) {
+            return res.status(404).json({
+                error: 'Application not found'
+            });
+        }
+
+        // Verify application belongs to this teacher
+        if (application.teacher_id.toString() !== teacherProfile._id.toString()) {
+            return res.status(403).json({
+                error: 'You can only withdraw your own applications'
+            });
+        }
+
+        // Check if can withdraw
+        if (application.status !== 'pending') {
+            return res.status(400).json({
+                error: `Cannot withdraw application with status: ${application.status}`
+            });
+        }
+
+        // Delete application
+        await Application.findByIdAndDelete(id);
+
+        // Update job's application count
+        await Job.findByIdAndUpdate(application.job_id, {
+            $inc: { applicationscount: -1 }
+        });
+
+        res.json({
+            success: true,
+            message: 'Application withdrawn successfully'
+        });
+
+    } catch (error) {
+        console.error('Withdraw application error:', error);
+        res.status(500).json({
+            error: 'Failed to withdraw application',
+            details: error.message
+        });
+    }
+};
+
+D:\Apps\PythonDocs\Eduhire\server\routes\applicationRoutes.js
+
+const express = require('express');
+const router = express.Router();
+const applicationController = require('../controllers/applicationController');
+const auth = require('../middleware/auth');
+
+// Teacher routes
+router.post('/apply', auth, applicationController.submitApplication);
+router.get('/my', auth, applicationController.getMyApplications);
+router.delete('/:id', auth, applicationController.withdrawApplication);
+
+// Institution routes
+router.get('/received', auth, applicationController.getAllReceivedApplications);
+router.get('/received/:jobId', auth, applicationController.getApplicationsForJob);
+router.post('/:id/shortlist', auth, applicationController.shortlistApplication);
+router.post('/:id/reject', auth, applicationController.rejectApplication);
+
+module.exports = router;
+
+D:\Apps\PythonDocs\Eduhire\server\models\Application.js
+const mongoose = require('mongoose');
+
+const applicationSchema = new mongoose.Schema({
+    job_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Job',
+        required: true,
+        index: true
+    },
+    teacher_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'TeacherProfile',
+        required: true,
+        index: true
+    },
+    institution_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'InstitutionProfile',
+        required: true,
+        index: true
+    },
+    status: {
+        type: String,
+        enum: ['pending', 'shortlisted', 'rejected'],
+        default: 'pending',
+        index: true
+    },
+    coverLetter: {
+        type: String,
+        required: true,
+        maxlength: 3000
+    },
+    appliedAt: {
+        type: Date,
+        default: Date.now,
+        index: true
+    }
+}, {
+    timestamps: true
+});
+
+// Compound index to prevent duplicate applications
+applicationSchema.index({ job_id: 1, teacher_id: 1 }, { unique: true });
+
+// Instance method to check if application can be withdrawn
+applicationSchema.methods.canWithdraw = function() {
+    return this.status === 'pending';
+};
+
+// Static method to get application count for a job
+applicationSchema.statics.getCountByJob = function(jobId) {
+    return this.countDocuments({ job_id: jobId });
+};
+
+// Static method to check if teacher already applied
+applicationSchema.statics.hasApplied = async function(jobId, teacherId) {
+    const application = await this.findOne({ job_id: jobId, teacher_id: teacherId });
+    return !!application;
+};
+
+module.exports = mongoose.model('Application', applicationSchema);
+
+D:\Apps\PythonDocs\Eduhire\client\src\services\applicationService.js
+import axios from 'axios';
+
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
+const getAuthHeader = () => {
+    const token = localStorage.getItem('token');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+const applicationService = {
+    // Teacher: Submit application
+    submitApplication: async (jobId, coverLetter) => {
+        const response = await axios.post(
+            `${API_BASE_URL}/applications/apply`,
+            {
+                job_id: jobId,
+                coverLetter: coverLetter
+            },
+            {
+                headers: getAuthHeader()
+            }
+        );
+        return response.data;
+    },
+
+    // Teacher: Get my applications
+    getMyApplications: async () => {
+        const response = await axios.get(
+            `${API_BASE_URL}/applications/my`,
+            {
+                headers: getAuthHeader()
+            }
+        );
+        return response.data;
+    },
+
+    // Teacher: Withdraw application
+    withdrawApplication: async (applicationId) => {
+        const response = await axios.delete(
+            `${API_BASE_URL}/applications/${applicationId}`,
+            {
+                headers: getAuthHeader()
+            }
+        );
+        return response.data;
+    },
+
+    // Institution: Get all received applications
+    getAllReceivedApplications: async (filters = {}) => {
+        const params = new URLSearchParams(filters).toString();
+        const response = await axios.get(
+            `${API_BASE_URL}/applications/received${params ? `?${params}` : ''}`,
+            {
+                headers: getAuthHeader()
+            }
+        );
+        return response.data;
+    },
+
+    // Institution: Get applications for specific job
+    getApplicationsForJob: async (jobId) => {
+        const response = await axios.get(
+            `${API_BASE_URL}/applications/received/${jobId}`,
+            {
+                headers: getAuthHeader()
+            }
+        );
+        return response.data;
+    },
+
+    // Institution: Shortlist application
+    shortlistApplication: async (applicationId) => {
+        const response = await axios.post(
+            `${API_BASE_URL}/applications/${applicationId}/shortlist`,
+            {},
+            {
+                headers: getAuthHeader()
+            }
+        );
+        return response.data;
+    },
+
+    // Institution: Reject application
+    rejectApplication: async (applicationId) => {
+        const response = await axios.post(
+            `${API_BASE_URL}/applications/${applicationId}/reject`,
+            {},
+            {
+                headers: getAuthHeader()
+            }
+        );
+        return response.data;
+    }
+};
+
+export default applicationService;
+
+D:\Apps\PythonDocs\Eduhire\client\src\pages\MyApplications.jsx
+import React, { useState, useEffect } from 'react';
+import {
+    Card,
+    Table,
+    Tag,
+    Button,
+    Space,
+    message,
+    Empty,
+    Modal,
+    Popconfirm,
+    Row,
+    Col,
+    Statistic
+} from 'antd';
+import {
+    EyeOutlined,
+    DeleteOutlined,
+    CalendarOutlined,
+    EnvironmentOutlined,
+    DollarOutlined
+} from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
+import applicationService from '../services/applicationService';
+import dayjs from 'dayjs';
+
+const MyApplications = () => {
+    const [applications, setApplications] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [stats, setStats] = useState({
+        total: 0,
+        pending: 0,
+        shortlisted: 0,
+        rejected: 0
+    });
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        fetchApplications();
+    }, []);
+
+    const fetchApplications = async () => {
+        try {
+            setLoading(true);
+            const response = await applicationService.getMyApplications();
+            setApplications(response.applications);
+
+            // Calculate stats
+            const stats = {
+                total: response.applications.length,
+                pending: response.applications.filter(a => a.status === 'pending').length,
+                shortlisted: response.applications.filter(a => a.status === 'shortlisted').length,
+                rejected: response.applications.filter(a => a.status === 'rejected').length
+            };
+            setStats(stats);
+        } catch (error) {
+            message.error('Failed to fetch applications');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleWithdraw = async (applicationId) => {
+        try {
+            await applicationService.withdrawApplication(applicationId);
+            message.success('Application withdrawn successfully');
+            fetchApplications();
+        } catch (error) {
+            message.error(error.response?.data?.error || 'Failed to withdraw application');
+        }
+    };
+
+    const showJobDetails = (job) => {
+        Modal.info({
+            title: job.title,
+            width: 700,
+            content: (
+                <div style={{ marginTop: 20 }}>
+                    <p><strong>Subject:</strong> {job.subject}</p>
+                    <p><strong>Level:</strong> {job.level}</p>
+                    <p><strong>Location:</strong> {job.location}</p>
+                    <p><strong>Employment Type:</strong> {job.employmentType}</p>
+                    {job.salary?.min && job.salary?.max && (
+                        <p>
+                            <strong>Salary:</strong> {job.salary.currency} {job.salary.min} - {job.salary.max} / {job.salary.period}
+                        </p>
+                    )}
+                    <p><strong>Institution:</strong> {job.institutionid?.institutionName}</p>
+                    <Button
+                        type="primary"
+                        onClick={() => {
+                            Modal.destroyAll();
+                            navigate(`/jobs/${job._id}`);
+                        }}
+                        style={{ marginTop: 10 }}
+                    >
+                        View Full Details
+                    </Button>
+                </div>
+            )
+        });
+    };
+
+    const getStatusColor = (status) => {
+        const colors = {
+            pending: 'orange',
+            shortlisted: 'green',
+            rejected: 'red'
+        };
+        return colors[status] || 'default';
+    };
+
+    const columns = [
+        {
+            title: 'Job Title',
+            dataIndex: ['job_id', 'title'],
+            key: 'title',
+            render: (text, record) => (
+                <div>
+                    <p className="font-semibold">{text}</p>
+                    <p className="text-xs text-gray-500">
+                        {record.job_id?.subject} • {record.job_id?.level}
+                    </p>
+                </div>
+            )
+        },
+        {
+            title: 'Institution',
+            dataIndex: ['job_id', 'institutionid', 'institutionName'],
+            key: 'institution',
+            render: (text) => <span className="text-sm">{text || 'N/A'}</span>
+        },
+        {
+            title: 'Location',
+            dataIndex: ['job_id', 'location'],
+            key: 'location',
+            render: (text) => (
+                <span className="text-sm">
+                    <EnvironmentOutlined /> {text}
+                </span>
+            )
+        },
+        {
+            title: 'Status',
+            dataIndex: 'status',
+            key: 'status',
+            render: (status) => (
+                <Tag color={getStatusColor(status)}>
+                    {status.toUpperCase()}
+                </Tag>
+            )
+        },
+        {
+            title: 'Applied Date',
+            dataIndex: 'appliedAt',
+            key: 'appliedAt',
+            render: (date) => (
+                <span className="text-sm">
+                    <CalendarOutlined /> {dayjs(date).format('DD MMM YYYY')}
+                </span>
+            )
+        },
+        {
+            title: 'Actions',
+            key: 'actions',
+            render: (_, record) => (
+                <Space size="small">
+                    <Button
+                        size="small"
+                        icon={<EyeOutlined />}
+                        onClick={() => showJobDetails(record.job_id)}
+                    >
+                        View Job
+                    </Button>
+                    {record.status === 'pending' && (
+                        <Popconfirm
+                            title="Withdraw Application"
+                            description="Are you sure you want to withdraw this application?"
+                            onConfirm={() => handleWithdraw(record._id)}
+                            okText="Yes"
+                            cancelText="No"
+                        >
+                            <Button
+                                danger
+                                size="small"
+                                icon={<DeleteOutlined />}
+                            >
+                                Withdraw
+                            </Button>
+                        </Popconfirm>
+                    )}
+                </Space>
+            )
+        }
+    ];
+
+    return (
+        <div className="min-h-screen bg-gray-50 p-6">
+            <div className="max-w-7xl mx-auto">
+                <h1 className="text-3xl font-bold text-gray-800 mb-6">My Applications</h1>
+
+                {/* Statistics */}
+                <Row gutter={16} className="mb-6">
+                    <Col xs={24} sm={12} md={6}>
+                        <Card>
+                            <Statistic
+                                title="Total Applications"
+                                value={stats.total}
+                                valueStyle={{ color: '#1890ff' }}
+                            />
+                        </Card>
+                    </Col>
+                    <Col xs={24} sm={12} md={6}>
+                        <Card>
+                            <Statistic
+                                title="Pending"
+                                value={stats.pending}
+                                valueStyle={{ color: '#faad14' }}
+                            />
+                        </Card>
+                    </Col>
+                    <Col xs={24} sm={12} md={6}>
+                        <Card>
+                            <Statistic
+                                title="Shortlisted"
+                                value={stats.shortlisted}
+                                valueStyle={{ color: '#52c41a' }}
+                            />
+                        </Card>
+                    </Col>
+                    <Col xs={24} sm={12} md={6}>
+                        <Card>
+                            <Statistic
+                                title="Rejected"
+                                value={stats.rejected}
+                                valueStyle={{ color: '#f5222d' }}
+                            />
+                        </Card>
+                    </Col>
+                </Row>
+
+                {/* Applications Table */}
+                <Card loading={loading}>
+                    {applications.length === 0 && !loading ? (
+                        <Empty
+                            description="You haven't applied for any jobs yet"
+                            style={{ marginTop: 50, marginBottom: 50 }}
+                        >
+                            <Button type="primary" onClick={() => navigate('/jobs')}>
+                                Browse Jobs
+                            </Button>
+                        </Empty>
+                    ) : (
+                        <Table
+                            columns={columns}
+                            dataSource={applications}
+                            rowKey="_id"
+                            pagination={{
+                                pageSize: 10,
+                                showSizeChanger: true,
+                                showTotal: (total) => `Total ${total} applications`
+                            }}
+                            scroll={{ x: 1000 }}
+                        />
+                    )}
+                </Card>
+            </div>
+        </div>
+    );
+};
+
+export default MyApplications;
+D:\Apps\PythonDocs\Eduhire\client\src\pages\ApplicationsReceived.jsx
+import React, { useState, useEffect } from 'react';
+import {
+    Card,
+    Table,
+    Tag,
+    Button,
+    Space,
+    message,
+    Empty,
+    Modal,
+    Select,
+    Row,
+    Col,
+    Statistic,
+    Descriptions,
+    Avatar
+} from 'antd';
+import {
+    UserOutlined,
+    FileTextOutlined,
+    DownloadOutlined,
+    CheckCircleOutlined,
+    CloseCircleOutlined,
+    MailOutlined,
+    PhoneOutlined
+} from '@ant-design/icons';
+import applicationService from '../services/applicationService';
+import jobService from '../services/jobService';
+import dayjs from 'dayjs';
+
+const { Option } = Select;
+
+const ApplicationsReceived = () => {
+    const [applications, setApplications] = useState([]);
+    const [jobs, setJobs] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [selectedJobId, setSelectedJobId] = useState(null);
+    const [selectedStatus, setSelectedStatus] = useState(null);
+    const [stats, setStats] = useState({
+        total: 0,
+        pending: 0,
+        shortlisted: 0,
+        rejected: 0
+    });
+
+    useEffect(() => {
+        fetchJobs();
+        fetchApplications();
+    }, [selectedJobId, selectedStatus]);
+
+    const fetchJobs = async () => {
+        try {
+            const response = await jobService.getMyJobs();
+            setJobs(response.data.jobs);
+        } catch (error) {
+            message.error('Failed to fetch jobs');
+        }
+    };
+
+    const fetchApplications = async () => {
+        try {
+            setLoading(true);
+            const filters = {};
+            if (selectedJobId) filters.jobId = selectedJobId;
+            if (selectedStatus) filters.status = selectedStatus;
+
+            const response = await applicationService.getAllReceivedApplications(filters);
+            setApplications(response.applications);
+
+            // Calculate stats
+            const allResponse = await applicationService.getAllReceivedApplications({});
+            const allApps = allResponse.applications;
+            setStats({
+                total: allApps.length,
+                pending: allApps.filter(a => a.status === 'pending').length,
+                shortlisted: allApps.filter(a => a.status === 'shortlisted').length,
+                rejected: allApps.filter(a => a.status === 'rejected').length
+            });
+        } catch (error) {
+            message.error('Failed to fetch applications');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleShortlist = async (applicationId) => {
+        try {
+            await applicationService.shortlistApplication(applicationId);
+            message.success('Application shortlisted');
+            fetchApplications();
+        } catch (error) {
+            message.error(error.response?.data?.error || 'Failed to shortlist');
+        }
+    };
+
+    const handleReject = async (applicationId) => {
+        try {
+            await applicationService.rejectApplication(applicationId);
+            message.success('Application rejected');
+            fetchApplications();
+        } catch (error) {
+            message.error(error.response?.data?.error || 'Failed to reject');
+        }
+    };
+
+    const showTeacherProfile = (teacher, application) => {
+        Modal.info({
+            title: 'Teacher Profile',
+            width: 800,
+            content: (
+                <div style={{ marginTop: 20 }}>
+                    <Descriptions bordered column={1}>
+                        <Descriptions.Item label="Name">{teacher.fullName}</Descriptions.Item>
+                        <Descriptions.Item label="Email">
+                            <MailOutlined /> {teacher.email}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Phone">
+                            <PhoneOutlined /> {teacher.phone}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Experience">
+                            {teacher.experience} years
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Education">
+                            {teacher.education}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Subjects">
+                            {teacher.subjects?.join(', ') || 'N/A'}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Location">
+                            {teacher.location?.district}, {teacher.location?.state}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Cover Letter">
+                            <div style={{ maxHeight: 200, overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
+                                {application.coverLetter}
+                            </div>
+                        </Descriptions.Item>
+                    </Descriptions>
+
+                    {teacher.resume && (
+                        <Button
+                            type="primary"
+                            icon={<DownloadOutlined />}
+                            href={teacher.resume}
+                            target="_blank"
+                            style={{ marginTop: 20 }}
+                        >
+                            Download Resume
+                        </Button>
+                    )}
+                </div>
+            )
+        });
+    };
+
+    const getStatusColor = (status) => {
+        const colors = {
+            pending: 'orange',
+            shortlisted: 'green',
+            rejected: 'red'
+        };
+        return colors[status] || 'default';
+    };
+
+    const columns = [
+        {
+            title: 'Teacher',
+            dataIndex: ['teacher_id', 'fullName'],
+            key: 'teacher',
+            render: (text, record) => (
+                <div className="flex items-center gap-2">
+                    <Avatar icon={<UserOutlined />} src={record.teacher_id?.photo} />
+                    <div>
+                        <p className="font-semibold">{text}</p>
+                        <p className="text-xs text-gray-500">
+                            {record.teacher_id?.experience} years exp.
+                        </p>
+                    </div>
+                </div>
+            )
+        },
+        {
+            title: 'Job',
+            dataIndex: ['job_id', 'title'],
+            key: 'job',
+            render: (text, record) => (
+                <div>
+                    <p className="font-semibold text-sm">{text}</p>
+                    <p className="text-xs text-gray-500">
+                        {record.job_id?.subject} • {record.job_id?.level}
+                    </p>
+                </div>
+            )
+        },
+        {
+            title: 'Contact',
+            key: 'contact',
+            render: (_, record) => (
+                <div className="text-sm">
+                    <p><MailOutlined /> {record.teacher_id?.email}</p>
+                    <p><PhoneOutlined /> {record.teacher_id?.phone}</p>
+                </div>
+            )
+        },
+        {
+            title: 'Status',
+            dataIndex: 'status',
+            key: 'status',
+            render: (status) => (
+                <Tag color={getStatusColor(status)}>
+                    {status.toUpperCase()}
+                </Tag>
+            )
+        },
+        {
+            title: 'Applied',
+            dataIndex: 'appliedAt',
+            key: 'appliedAt',
+            render: (date) => dayjs(date).format('DD MMM YYYY')
+        },
+        {
+            title: 'Actions',
+            key: 'actions',
+            render: (_, record) => (
+                <Space direction="vertical" size="small">
+                    <Button
+                        size="small"
+                        icon={<FileTextOutlined />}
+                        onClick={() => showTeacherProfile(record.teacher_id, record)}
+                        block
+                    >
+                        View Profile
+                    </Button>
+                    {record.teacher_id?.resume && (
+                        <Button
+                            size="small"
+                            icon={<DownloadOutlined />}
+                            href={record.teacher_id.resume}
+                            target="_blank"
+                            block
+                        >
+                            Resume
+                        </Button>
+                    )}
+                    {record.status === 'pending' && (
+                        <>
+                            <Button
+                                type="primary"
+                                size="small"
+                                icon={<CheckCircleOutlined />}
+                                onClick={() => handleShortlist(record._id)}
+                                block
+                            >
+                                Shortlist
+                            </Button>
+                            <Button
+                                danger
+                                size="small"
+                                icon={<CloseCircleOutlined />}
+                                onClick={() => handleReject(record._id)}
+                                block
+                            >
+                                Reject
+                            </Button>
+                        </>
+                    )}
+                </Space>
+            )
+        }
+    ];
+
+    return (
+        <div className="min-h-screen bg-gray-50 p-6">
+            <div className="max-w-7xl mx-auto">
+                <h1 className="text-3xl font-bold text-gray-800 mb-6">Applications Received</h1>
+
+                {/* Statistics */}
+                <Row gutter={16} className="mb-6">
+                    <Col xs={24} sm={12} md={6}>
+                        <Card>
+                            <Statistic
+                                title="Total Applications"
+                                value={stats.total}
+                                valueStyle={{ color: '#1890ff' }}
+                            />
+                        </Card>
+                    </Col>
+                    <Col xs={24} sm={12} md={6}>
+                        <Card>
+                            <Statistic
+                                title="Pending Review"
+                                value={stats.pending}
+                                valueStyle={{ color: '#faad14' }}
+                            />
+                        </Card>
+                    </Col>
+                    <Col xs={24} sm={12} md={6}>
+                        <Card>
+                            <Statistic
+                                title="Shortlisted"
+                                value={stats.shortlisted}
+                                valueStyle={{ color: '#52c41a' }}
+                            />
+                        </Card>
+                    </Col>
+                    <Col xs={24} sm={12} md={6}>
+                        <Card>
+                            <Statistic
+                                title="Rejected"
+                                value={stats.rejected}
+                                valueStyle={{ color: '#f5222d' }}
+                            />
+                        </Card>
+                    </Col>
+                </Row>
+
+                {/* Filters */}
+                <Card className="mb-6">
+                    <Row gutter={16}>
+                        <Col xs={24} sm={12}>
+                            <Select
+                                placeholder="Filter by Job"
+                                style={{ width: '100%' }}
+                                allowClear
+                                onChange={setSelectedJobId}
+                                value={selectedJobId}
+                            >
+                                {jobs.map(job => (
+                                    <Option key={job._id} value={job._id}>
+                                        {job.title}
+                                    </Option>
+                                ))}
+                            </Select>
+                        </Col>
+                        <Col xs={24} sm={12}>
+                            <Select
+                                placeholder="Filter by Status"
+                                style={{ width: '100%' }}
+                                allowClear
+                                onChange={setSelectedStatus}
+                                value={selectedStatus}
+                            >
+                                <Option value="pending">Pending</Option>
+                                <Option value="shortlisted">Shortlisted</Option>
+                                <Option value="rejected">Rejected</Option>
+                            </Select>
+                        </Col>
+                    </Row>
+                </Card>
+
+                {/* Applications Table */}
+                <Card loading={loading}>
+                    {applications.length === 0 && !loading ? (
+                        <Empty
+                            description="No applications received yet"
+                            style={{ marginTop: 50, marginBottom: 50 }}
+                        />
+                    ) : (
+                        <Table
+                            columns={columns}
+                            dataSource={applications}
+                            rowKey="_id"
+                            pagination={{
+                                pageSize: 10,
+                                showSizeChanger: true,
+                                showTotal: (total) => `Total ${total} applications`
+                            }}
+                            scroll={{ x: 1200 }}
+                        />
+                    )}
+                </Card>
+            </div>
+        </div>
+    );
+};
+
+export default ApplicationsReceived;
+
+D:\Apps\PythonDocs\Eduhire\server\server.js
+require('dotenv').config();
+
+const express = require('express');
+
+const mongoose = require('mongoose');
+
+const cors = require('cors');
+
+const rateLimit = require('express-rate-limit');  // NEW: Rate limiting
+
+const applicationRoutes = require('./routes/applicationRoutes');
+
+
+
+const app = express();
+
+
+
+// ===============================================
+
+// MIDDLEWARE SETUP
+
+// ===============================================
+
+
+
+// CORS configuration
+
+app.use(cors({
+
+    origin: process.env.CLIENT_URL || 'http://localhost:3000',
+
+    credentials: true
+
+}));
+
+
+
+// Body parsers
+
+app.use(express.json({ limit: '10mb' }));
+
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+app.use('/api/applications', applicationRoutes);
+
+
+
+// NEW: Rate limiting to prevent abuse
+
+const limiter = rateLimit({
+
+    windowMs: 15 * 60 * 1000, // 15 minutes
+
+    max: 100, // Limit each IP to 100 requests per windowMs
+
+    message: 'Too many requests from this IP, please try again later.',
+
+    standardHeaders: true,
+
+    legacyHeaders: false,
+
+});
+
+
+
+// Apply rate limiting to all routes
+
+app.use('/api/', limiter);
+
+
+
+// NEW: Stricter rate limiting for auth routes
+
+//const authLimiter = rateLimit({
+
+//    windowMs: 15 * 60 * 1000,
+
+//    max: 5, // Only 5 login attempts per 15 minutes
+
+//    message: 'Too many login attempts, please try again later.'
+
+//});
+
+
+
+// ===============================================
+
+// MONGODB CONNECTION
+
+// ===============================================
+
+
+
+const uri = process.env.MONGO_URI;
+
+
+
+// FIXED: Validation for required environment variables
+
+if (!uri) {
+
+    console.error('FATAL: MONGO_URI environment variable is not set');
+
+    process.exit(1);
+
+}
+
+
+
+const connectDB = async () => {
+
+    try {
+
+        // FIXED: Removed deprecated options
+
+        await mongoose.connect(uri);
+
+
+
+        console.log('MongoDB connected successfully');
+
+        console.log(`Database: ${mongoose.connection.name}`);
+
+
+
+        // NEW: Connection event listeners
+
+        mongoose.connection.on('error', (err) => {
+
+            console.error('MongoDB connection error:', err);
+
+        });
+
+
+
+        mongoose.connection.on('disconnected', () => {
+
+            console.warn('MongoDB disconnected');
+
+        });
+
+
+
+        mongoose.connection.on('reconnected', () => {
+
+            console.log('MongoDB reconnected');
+
+        });
+
+
+
+    } catch (error) {
+
+        console.error('MongoDB connection error:', error.message);
+
+        process.exit(1);
+
+    }
+
+};
+
+
+
+// ===============================================
+
+// IMPORT ROUTES
+
+// ===============================================
+
+
+
+const authRoutes = require('./routes/auth');
+
+const teacherRoutes = require('./routes/teacher');
+
+const institutionRoutes = require('./routes/institution');
+
+const locationRoutes = require('./routes/location');
+
+const jobRoutes = require('./routes/jobRoutes');
+
+
+
+// ===============================================
+
+// ROUTE REGISTRATION
+
+// ===============================================
+
+
+
+// Apply stricter rate limiting to auth routes
+
+app.use('/api/auth/login', authLimiter);
+
+app.use('/api/auth/register', authLimiter);
+
+
+
+// Register routes
+
+app.use('/api/auth', authRoutes);
+
+app.use('/api/teachers', teacherRoutes);
+
+app.use('/api/institutions', institutionRoutes);
+
+app.use('/api/location', locationRoutes);
+
+app.use('/api/jobs', jobRoutes);
+
+
+
+// ===============================================
+
+// HEALTH CHECK & ROOT ROUTES
+
+// ===============================================
+
+
+
+// Root route
+
+app.get('/', (req, res) => {
+
+    res.json({
+
+        message: 'Eduhire API Server',
+
+        version: '1.0.0',
+
+        status: 'running',
+
+        timestamp: new Date()
+
+    });
+
+});
+
+
+
+// Health check endpoint
+
+app.get('/api/health', (req, res) => {
+
+    const healthcheck = {
+
+        uptime: process.uptime(),
+
+        message: 'Server is running',
+
+        timestamp: new Date(),
+
+        environment: process.env.NODE_ENV || 'development',
+
+        database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+
+    };
+
+
+
+    try {
+
+        res.status(200).json(healthcheck);
+
+    } catch (error) {
+
+        healthcheck.message = error;
+
+        res.status(503).json(healthcheck);
+
+    }
+
+});
+
+
+
+// ===============================================
+
+// ERROR HANDLING MIDDLEWARE
+
+// ===============================================
+
+
+
+// 404 handler - Must come after all routes
+
+app.use((req, res) => {
+
+    res.status(404).json({
+
+        success: false,
+
+        error: 'Route not found',
+
+        path: req.path,
+
+        method: req.method
+
+    });
+
+});
+
+
+
+// Global error handler
+
+app.use((err, req, res, next) => {
+
+    console.error('Error:', err.stack);
+
+
+
+    // Mongoose validation error
+
+    if (err.name === 'ValidationError') {
+
+        return res.status(400).json({
+
+            success: false,
+
+            error: 'Validation Error',
+
+            details: Object.values(err.errors).map(e => e.message)
+
+        });
+
+    }
+
+
+
+    // Mongoose cast error (invalid ObjectId)
+
+    if (err.name === 'CastError') {
+
+        return res.status(400).json({
+
+            success: false,
+
+            error: 'Invalid ID format'
+
+        });
+
+    }
+
+
+
+    // Duplicate key error
+
+    if (err.code === 11000) {
+
+        return res.status(400).json({
+
+            success: false,
+
+            error: 'Duplicate entry',
+
+            field: Object.keys(err.keyPattern)[0]
+
+        });
+
+    }
+
+
+
+    // JWT errors
+
+    if (err.name === 'JsonWebTokenError') {
+
+        return res.status(401).json({
+
+            success: false,
+
+            error: 'Invalid token'
+
+        });
+
+    }
+
+
+
+    if (err.name === 'TokenExpiredError') {
+
+        return res.status(401).json({
+
+            success: false,
+
+            error: 'Token expired'
+
+        });
+
+    }
+
+
+
+    // Default error response
+
+    res.status(err.status || 500).json({
+
+        success: false,
+
+        error: err.message || 'Something went wrong!',
+
+        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+
+    });
+
+});
+
+
+
+// ===============================================
+
+// GRACEFUL SHUTDOWN
+
+// ===============================================
+
+
+
+process.on('SIGTERM', () => {
+
+    console.log('SIGTERM signal received: closing HTTP server');
+
+    server.close(() => {
+
+        console.log('HTTP server closed');
+
+        mongoose.connection.close(false, () => {
+
+            console.log('MongoDB connection closed');
+
+            process.exit(0);
+
+        });
+
+    });
+
+});
+
+
+
+process.on('SIGINT', () => {
+
+    console.log('SIGINT signal received: closing HTTP server');
+
+    server.close(() => {
+
+        console.log('HTTP server closed');
+
+        mongoose.connection.close(false, () => {
+
+            console.log('MongoDB connection closed');
+
+            process.exit(0);
+
+        });
+
+    });
+
+});
+
+
+
+// ===============================================
+
+// SERVER STARTUP
+
+// ===============================================
+
+
+
+let server;
+
+
+
+(async () => {
+
+    try {
+
+        // Connect to MongoDB first
+
+        await connectDB();
+
+
+
+        // Start Express server
+
+        const PORT = process.env.PORT || 5000;
+
+        server = app.listen(PORT, () => {
+
+            console.log('');
+
+            console.log('═══════════════════════════════════════');
+
+            console.log(`Server running on http://localhost:${PORT}`);
+
+            console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+
+            console.log(`Started at: ${new Date().toLocaleString()}`);
+
+            console.log('═══════════════════════════════════════');
+
+            console.log('');
+
+        });
+
+
+
+    } catch (error) {
+
+        console.error('Failed to start server:', error);
+
+        process.exit(1);
+
+    }
+
+})();
+
+
+
+module.exports = app;

@@ -1,0 +1,21 @@
+Permission,Super Admin,Content Moderator,Customer Support,Finance Admin,Marketing Admin,Description
+View Dashboard,✓,✓,✓,✓,✓,Access admin panel home
+Suspend/Ban Users,✓,✓,Limited,✗,✗,Disable user accounts
+Edit User Profiles,✓,Limited,✓,✗,✗,Modify user data
+Approve/Reject Jobs,✓,✓,✗,✗,✗,Moderate job postings
+Moderate Reviews,✓,✓,Limited,✗,✗,Approve/flag reviews
+View Payments,✓,✗,Limited,✓,✗,Access transaction data
+Manage Subscriptions,✓,✗,Limited,✓,✗,Change user plans
+Payment Gateway Control,✓,✗,✗,✓,✗,Enable/disable Razorpay
+Site Maintenance Mode,✓,✗,✗,✗,✗,Take site offline
+Manage Filters,✓,✓,✗,✗,✗,Add/edit search filters
+Email Template Editor,✓,✗,✗,✗,✓,Modify email content
+Broadcast Messages,✓,✗,✗,✗,✓,Send bulk communications
+Email/WhatsApp Toggle,✓,✗,✗,✗,Limited,Enable/disable notifications
+CMS Page Editor,✓,✓,✗,✗,✓,Edit website pages
+Backup Management,✓,✗,✗,✗,✗,Create/configure backups
+Data Export,✓,✗,Limited,✓,✓,Export platform data
+Manage Admin Users,✓,✗,✗,✗,✗,Add/remove admins
+View Audit Logs,✓,✗,✗,✓,✗,Track admin actions
+Analytics Dashboard,✓,Limited,Limited,✓,✓,View platform metrics
+User Impersonation,✓,✗,✓,✗,✗,Login as users for support

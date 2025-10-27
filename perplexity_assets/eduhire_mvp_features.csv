@@ -1,0 +1,21 @@
+Feature Category,Feature,Priority,Complexity,Timeline,Tech Stack
+Authentication & Profiles,Teacher Registration/Login,Critical,Medium,Week 1,React + Node.js + JWT
+Authentication & Profiles,Institution Registration/Login,Critical,Medium,Week 1,React + Node.js + JWT
+Authentication & Profiles,Teacher Profile Creation (Resume Upload),Critical,Medium,Week 1-2,Multer/Cloudinary
+Authentication & Profiles,Institution Profile Creation,Critical,Medium,Week 1-2,React Forms + MongoDB
+Job Listing & Search,Job Posting (Institution),Critical,Medium,Week 2,Node.js + MongoDB
+Job Listing & Search,"Job Search & Filter (Location, Subject, Level)",Critical,High,Week 2-3,React + MongoDB Queries
+Job Listing & Search,Featured Jobs (Premium),High,Low,Week 3,Database Flag + Frontend
+Application Management,Apply for Jobs,Critical,Medium,Week 2-3,Node.js + MongoDB
+Application Management,Application Tracking (Teacher),High,Medium,Week 3,React Dashboard
+Application Management,View Applications (Institution),Critical,Medium,Week 2-3,React Dashboard + Filters
+Reviews & Ratings,Institution Reviews (Teacher),High,Medium,Week 3-4,MongoDB + React Components
+Reviews & Ratings,Teacher Reviews (Institution),High,Medium,Week 3-4,MongoDB + React Components
+Communication,"Email Notifications (Apply, Shortlist)",High,Medium,Week 3,Nodemailer/SendGrid
+Communication,WhatsApp Alerts,Medium,High,Week 4,WhatsApp Business API
+Monetization,Subscription Plans (Institution),High,Medium,Week 3-4,React + MongoDB
+Monetization,Razorpay Payment Integration,High,Medium,Week 4,Razorpay SDK
+Monetization,Ad Space Integration,Low,Low,Post-Launch,Google AdSense
+Analytics & Data,User Behavior Tracking,Medium,Medium,Week 4,Google Analytics/Mixpanel
+Analytics & Data,Search Analytics,Medium,Medium,Week 4,MongoDB Aggregation
+Admin,Job Approval System,Medium,Medium,Week 4,Admin Dashboard

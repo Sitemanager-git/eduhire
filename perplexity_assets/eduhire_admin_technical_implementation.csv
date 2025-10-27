@@ -1,0 +1,88 @@
+Feature,Backend API,Request Body,Database Update,Additional Logic,Frontend Component
+User Account Suspension,PATCH /api/admin/users/:id/status,"{""status"": ""suspended"", ""reason"": ""spam"", ""duration"": ""permanent""}","users.updateOne({_id}, {$set: {status, suspended_at, suspended_by}})","• Terminate active sessions
+• Send notification email
+• Log to audit trail
+• Prevent login attempts",UserManagement.jsx → SuspendUserModal
+Payment Gateway Toggle,PATCH /api/admin/system/payment-gateway,"{""enabled"": false, ""reason"": ""maintenance""}","system_config.updateOne({key: 'payment_enabled'}, {$set: {value: false}})","• Cache config for fast access
+• Display message on checkout
+• Queue pending payments
+• Alert finance team",SystemControls.jsx → PaymentGatewayToggle
+Registration Control,PATCH /api/admin/system/registration,"{""teachers_enabled"": true, ""institutions_enabled"": false}","system_config.updateOne({key: 'registration_config'}, {$set: value})","• Check on signup page load
+• Show custom disabled message
+• Allow whitelisted emails
+• Beta invite codes",SystemControls.jsx → RegistrationToggle
+Site Maintenance Mode,PATCH /api/admin/system/maintenance,"{""enabled"": true, ""message"": ""Upgrading servers"", ""estimated_duration"": ""2 hours""}","system_config.updateOne({key: 'maintenance_mode'}, {$set: value})","• Middleware to check every request
+• Bypass for admin IPs
+• Return 503 status code
+• Display countdown timer",MaintenancePage.jsx (full-screen overlay)
+Email Service Toggle,PATCH /api/admin/communication/email,"{""enabled"": false, ""notification_types"": [""marketing""]}","system_config.updateOne({key: 'email_config'}, {$set: value})","• Queue emails if disabled
+• Selective toggle by type
+• Track blocked count
+• Auto-resume after timer",CommunicationSettings.jsx → EmailToggle
+WhatsApp Alerts Control,PATCH /api/admin/communication/whatsapp,"{""enabled"": true, ""message_types"": [""job_match"", ""application_update""]}","system_config.updateOne({key: 'whatsapp_config'}, {$set: value})","• Check balance before sending
+• Granular control by type
+• Rate limiting per user
+• Cost tracking dashboard",CommunicationSettings.jsx → WhatsAppToggle
+Geographic Availability,PATCH /api/admin/system/geo-availability,"{""state"": ""Maharashtra"", ""enabled"": true}","geographic_config.updateOne({state}, {$set: {is_active}})","• Check user IP/profile location
+• Redirect to waitlist page
+• Allow existing users
+• SEO: noindex for disabled regions",GeographicControls.jsx → StateToggleList
+Filter Management,"POST /api/admin/filters
+PATCH /api/admin/filters/:id
+DELETE /api/admin/filters/:id","{""type"": ""subject"", ""value"": ""Data Science"", ""active"": true}",filters collection CRUD operations,"• Validate no duplicates
+• Update search indexes
+• Clear cache
+• Track filter usage stats",FilterManagement.jsx → FilterEditor
+Job Moderation,PATCH /api/admin/jobs/:id/moderate,"{""action"": ""approve/reject"", ""reason"": ""Policy violation""}","jobs.updateOne({_id}, {$set: {status, reviewed_by, reviewed_at}})","• Notify institution via email
+• Auto-approve verified institutions
+• Flag keywords (salary < minimum)
+• Update moderation queue",JobModeration.jsx → ModerationQueue
+Review Moderation,PATCH /api/admin/reviews/:id/moderate,"{""action"": ""approve/reject/flag"", ""reason"": ""Inappropriate content""}","reviews.updateOne({_id}, {$set: {status, moderated_by}})","• Profanity filter check
+• Duplicate review detection
+• Notify reviewer if rejected
+• Update institution rating",ReviewModeration.jsx → ReviewQueue
+User Profile Editing,PATCH /api/admin/users/:id,"{""field"": ""value"", ...} (any user field)","users.updateOne({_id}, {$set: updates})","• Validate data types
+• Log all changes
+• Send confirmation email
+• Version control (history)",UserProfileEditor.jsx → EditForm
+Manual Subscription Management,PATCH /api/admin/subscriptions/:userId,"{""plan"": ""professional"", ""expiry"": ""2026-01-01"", ""reason"": ""promotional""}","subscriptions.updateOne({user_id}, {$set: {plan, expiry}})","• Update payment history
+• Unlock premium features
+• Send upgrade email
+• Track comp'd revenue",SubscriptionManager.jsx → ChangePlanModal
+Backup Creation,POST /api/admin/backups/create,"{""type"": ""manual"", ""collections"": [""users"", ""jobs"", ""applications""]}",site_backups.insertOne({...backup_metadata}),"• Use mongodump command
+• Compress to .gz
+• Upload to S3/Cloud Storage
+• Verify backup integrity
+• Retention policy (30 days)",BackupManagement.jsx → CreateBackupButton
+Backup Location Config,PATCH /api/admin/backups/config,"{""storage_type"": ""s3"", ""bucket"": ""eduhire-backups"", ""credentials"": {...}}","system_config.updateOne({key: 'backup_config'}, {$set: value})","• Test connection before saving
+• Encrypt credentials
+• Support multiple storage types
+• Auto-cleanup old backups",BackupSettings.jsx → StorageConfigForm
+Email Template Editor,PATCH /api/admin/email-templates/:name,"{""subject"": ""..."", ""html_body"": ""..."", ""variables"": [""{{name}}"", ""{{job_title}}""]}","email_templates.updateOne({template_name}, {$set: updates})","• Rich text editor (WYSIWYG)
+• Variable validation
+• Preview before save
+• Version history
+• Test email function",EmailTemplateEditor.jsx → RichTextEditor
+Broadcast Messaging,POST /api/admin/broadcast,"{""channel"": ""email"", ""segment"": {""user_type"": ""teacher"", ""location"": ""Delhi""}, ""content"": ""...""}",broadcast_campaigns.insertOne({...campaign_data}),"• Query matching users
+• Batch sending (1000/batch)
+• Track delivery status
+• Unsubscribe handling
+• Cost estimation",BroadcastManager.jsx → CreateCampaignWizard
+Data Export,POST /api/admin/export,"{""collection"": ""users"", ""filters"": {...}, ""fields"": [...], ""format"": ""csv""}",N/A (read-only),"• Pagination for large exports
+• Anonymize sensitive fields
+• Generate download link
+• Expire after 24 hours
+• Track export logs",DataExport.jsx → ExportWizard
+Admin User Creation,POST /api/admin/admin-users,"{""email"": ""..."", ""role"": ""moderator"", ""permissions"": [...]}","admin_users.insertOne({...admin_data, password_hash})","• Send invite email
+• Temporary password
+• Force password change on first login
+• 2FA setup wizard",AdminUserManagement.jsx → CreateAdminForm
+Activity Audit Logs,GET /api/admin/audit-logs,Query params: ?admin_id=X&action_type=Y&from=date&to=date,Auto-inserted via middleware on every admin action,"• Capture IP, user agent
+• Store before/after values
+• Immutable records
+• Indexed for fast queries
+• Export capability",AuditLogs.jsx → FilterableTable
+Featured Jobs Control,PATCH /api/admin/jobs/:id/featured,"{""featured"": true, ""featured_until"": ""2025-11-19"", ""priority"": 1}","jobs.updateOne({_id}, {$set: {is_featured, featured_until, priority}})","• Check institution subscription
+• Homepage display logic
+• Expire automatically
+• Track impressions/clicks",FeaturedJobsManager.jsx → FeaturedToggle
