@@ -1,1 +1,187 @@
-"server/.env" 
+# ═══════════════════════════════════════════════════════════════
+# EDUHIRE - SECURE .gitignore CONFIGURATION
+# Purpose: Prevent sensitive files from being committed to GitHub
+# Updated: November 1, 2025
+# ═══════════════════════════════════════════════════════════════
+
+# ========================================
+# 🔐 ENVIRONMENT VARIABLES - CRITICAL!
+# ========================================
+.env
+.env.local
+.env.*.local
+.env.production.local
+server/.env
+client/.env
+server/.env.*
+client/.env.*
+
+# ========================================
+# 📁 LOCAL DEVELOPMENT FOLDER - IMPORTANT
+# ========================================
+.local/
+.local/**/*
+
+# ========================================
+# 📦 DEPENDENCIES
+# ========================================
+node_modules/
+package-lock.json
+yarn.lock
+*.pnp
+.pnp.js
+
+# ========================================
+# 🏗️ BUILD & DIST
+# ========================================
+/build
+/dist
+/out
+/.next
+/coverage
+
+# ========================================
+# 🪵 LOGS & DEBUGGING
+# ========================================
+*.log
+*.logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+debug.log
+
+# ========================================
+# 🖥️ IDE & EDITOR
+# ========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.AppleDouble
+.LSOverride
+*.sublime-project
+*.sublime-workspace
+.atom/
+.project
+.classpath
+*.c9/
+*.iml
+.c9/
+*.iws
+*.ipr
+.settings/
+*.jks
+*.keystore
+
+# ========================================
+# 🔧 OS FILES
+# ========================================
+Thumbs.db
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
+
+# ========================================
+# 🗄️ DATABASE & BACKUPS - SENSITIVE
+# ========================================
+*.db
+*.sqlite
+*.sqlite3
+*.sql
+*.dump
+*.backup
+/db/
+/backups/
+/dumps/
+
+# ========================================
+# 🔑 SECRETS & KEYS - ABSOLUTELY NO!
+# ========================================
+*.pem
+*.key
+*.pub
+*.ppk
+*.pfx
+.ssh/
+id_rsa
+id_rsa.pub
+known_hosts
+
+# ========================================
+# 📋 TEMPORARY & CACHE
+# ========================================
+/tmp/
+/temp/
+*.tmp
+.cache/
+.eslintcache
+.prettier-cache
+.jest-cache/
+jest.json
+.husky/_
+
+# ========================================
+# 📤 UPLOAD & FILE STORAGE
+# ========================================
+/uploads/
+/public/uploads/
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.mp4
+*.mov
+
+# ========================================
+# 🏃 RUNTIME & PROCESS
+# ========================================
+.env.development.local
+.env.test.local
+.env.production.local
+.pmrc
+.pm2.json
+
+# ========================================
+# 🔄 VERSION CONTROL & MERGE
+# ========================================
+*.orig
+*.rej
+.merge_file_*
+
+# ========================================
+# 🎯 PROJECT SPECIFIC - EDUHIRE
+# ========================================
+/server/.env
+/client/.env
+/server/uploads/
+/client/public/uploads/
+.local/
+.local/**/*
+/docs/private/
+/scripts/deploy-keys/
+
+# ========================================
+# 📚 OPTIONAL: DOCUMENTATION BACKUPS
+# ========================================
+# /docs/backup/
+# /docs/old-versions/
+
+# ========================================
+# 🔍 IMPORTANT NOTES
+# ========================================
+# - NEVER commit .env files
+# - NEVER commit credentials or API keys
+# - NEVER commit database files
+# - NEVER commit private keys
+# - .local folder is COMPLETELY ignored
+# - All sensitive data stays local only
+# - Use .env.example for templates
