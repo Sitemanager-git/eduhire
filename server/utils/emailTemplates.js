@@ -249,10 +249,23 @@ const renderTemplate = (templateName, data) => {
 
   let html = templates[templateName] || '<p>Template not found</p>';
 
-  // Replace all {{variables}} with actual data
+  // Helper function to escape HTML and prevent XSS
+  const escapeHtml = (unsafe) => {
+    if (!unsafe || typeof unsafe !== 'string') return '';
+    return unsafe
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  };
+
+  // Replace all {{variables}} with HTML-escaped data
   Object.keys(data).forEach(key => {
     const regex = new RegExp(`{{${key}}}`, 'g');
-    html = html.replace(regex, data[key] || '');
+    const safeValue = escapeHtml(String(data[key] || ''));
+    html = html.replace(regex, safeValue);
+    regex.lastIndex = 0; // Reset regex state
   });
 
   return html;

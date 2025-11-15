@@ -2,6 +2,14 @@
 const mongoose = require('mongoose');
 
 const InstitutionProfileSchema = new mongoose.Schema({
+    // ***** ADD THIS: User Reference *****
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+        unique: true
+    },
+
     // Basic Details
     institutionName: {
         type: String,

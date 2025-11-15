@@ -18,9 +18,21 @@ const UserSchema = new mongoose.Schema({
     required: true,
   },
   profile: {
-    // Nested object, customize as needed
+    // Profile completion tracking
     name: { type: String },
-    // add more profile fields here as needed
+    completed: { 
+      type: Boolean, 
+      default: false 
+    },
+    completedAt: { 
+      type: Date, 
+      default: null 
+    },
+    profileType: { 
+      type: String,
+      enum: ['institution', 'teacher', 'student'],
+      default: null
+    }
   },
   status: {
     type: String,
@@ -41,14 +53,17 @@ UserSchema.pre('save', async function (next) {
 });
 
 // Method to compare entered password with hashed password
-UserSchema.methods.comparePassword = async function (candidatePassword) {
+UserSchema.methods.comparePassword = async function(candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-// Method to generate JWT auth token
-UserSchema.methods.generateAuthToken = function () {
-  const payload = { id: this._id, email: this.email, userType: this.userType };
-  const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+UserSchema.methods.generateAuthToken = function() {
+  const payload = {
+    id: this._id,
+    email: this.email,
+    userType: this.userType
+  };
+  const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
   return token;
 };
 

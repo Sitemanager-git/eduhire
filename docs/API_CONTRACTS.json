@@ -1,0 +1,354 @@
+{
+  "api_contracts": {
+    "authentication": {
+      "login": {
+        "method": "POST",
+        "endpoint": "/api/auth/login",
+        "request": {
+          "email": "string (required)",
+          "password": "string (required)"
+        },
+        "response": {
+          "token": "string (JWT)",
+          "user": {
+            "_id": "ObjectId",
+            "name": "string",
+            "email": "string",
+            "userType": "string (teacher|institution)",
+            "profileComplete": "boolean"
+          }
+        }
+      },
+      "register": {
+        "method": "POST",
+        "endpoint": "/api/auth/register",
+        "request": {
+          "name": "string",
+          "email": "string",
+          "password": "string",
+          "userType": "string (teacher|institution)"
+        },
+        "response": {
+          "token": "string (JWT)",
+          "user": {
+            "_id": "ObjectId",
+            "name": "string",
+            "email": "string",
+            "userType": "string"
+          }
+        }
+      }
+    },
+    "profile": {
+      "get_teacher_profile": {
+        "method": "GET",
+        "endpoint": "/api/teachers/profile",
+        "auth": "Bearer token",
+        "response": {
+          "name": "string",
+          "email": "string",
+          "subject": "string",
+          "experience": "number",
+          "qualifications": "string",
+          "profilePicture": "string (URL or null)",
+          "subscription": {
+            "plan": "string (Free|Premium|Professional)",
+            "renewalDate": "Date"
+          }
+        }
+      },
+      "get_institution_profile": {
+        "method": "GET",
+        "endpoint": "/api/institutions/profile",
+        "auth": "Bearer token",
+        "response": {
+          "name": "string",
+          "email": "string",
+          "schoolName": "string",
+          "location": "string",
+          "about": "string",
+          "profilePicture": "string (URL or null)",
+          "subscription": {
+            "plan": "string (Free|Premium|Professional)",
+            "renewalDate": "Date"
+          }
+        }
+      },
+      "update_teacher_profile": {
+        "method": "PUT",
+        "endpoint": "/api/teachers/profile",
+        "auth": "Bearer token",
+        "request": {
+          "name": "string (optional)",
+          "subject": "string (optional)",
+          "experience": "number (optional)",
+          "qualifications": "string (optional)"
+        },
+        "response": {
+          "name": "string",
+          "email": "string",
+          "subject": "string",
+          "experience": "number",
+          "qualifications": "string",
+          "profilePicture": "string"
+        }
+      },
+      "update_institution_profile": {
+        "method": "PUT",
+        "endpoint": "/api/institutions/profile",
+        "auth": "Bearer token",
+        "request": {
+          "schoolName": "string (optional)",
+          "location": "string (optional)",
+          "about": "string (optional)"
+        },
+        "response": {
+          "name": "string",
+          "email": "string",
+          "schoolName": "string",
+          "location": "string",
+          "about": "string"
+        }
+      }
+    },
+    "notifications": {
+      "get_all": {
+        "method": "GET",
+        "endpoint": "/api/notifications",
+        "auth": "Bearer token",
+        "response": [
+          {
+            "_id": "ObjectId",
+            "userId": "ObjectId",
+            "message": "string",
+            "type": "string (application|review|message|system)",
+            "read": "boolean",
+            "createdAt": "Date"
+          }
+        ]
+      },
+      "unread_count": {
+        "method": "GET",
+        "endpoint": "/api/notifications/unread-count",
+        "auth": "Bearer token",
+        "response": {
+          "count": "number"
+        }
+      },
+      "mark_read": {
+        "method": "PATCH",
+        "endpoint": "/api/notifications/:id/read",
+        "auth": "Bearer token",
+        "request": {},
+        "response": {
+          "_id": "ObjectId",
+          "read": true
+        }
+      },
+      "delete": {
+        "method": "DELETE",
+        "endpoint": "/api/notifications/:id",
+        "auth": "Bearer token",
+        "response": {
+          "message": "Notification deleted"
+        }
+      }
+    },
+    "settings": {
+      "get_settings": {
+        "method": "GET",
+        "endpoint": "/api/user/settings",
+        "auth": "Bearer token",
+        "response": {
+          "notifications": {
+            "email": "boolean",
+            "jobAlerts": "boolean",
+            "applicationUpdates": "boolean",
+            "reviews": "boolean",
+            "messages": "boolean"
+          },
+          "privacy": {
+            "profilePublic": "boolean",
+            "showReviews": "boolean",
+            "searchEngineIndex": "boolean"
+          }
+        }
+      },
+      "update_settings": {
+        "method": "PUT",
+        "endpoint": "/api/user/settings",
+        "auth": "Bearer token",
+        "request": {
+          "notifications": {
+            "email": "boolean",
+            "jobAlerts": "boolean",
+            "applicationUpdates": "boolean",
+            "reviews": "boolean",
+            "messages": "boolean"
+          },
+          "privacy": {
+            "profilePublic": "boolean",
+            "showReviews": "boolean",
+            "searchEngineIndex": "boolean"
+          }
+        },
+        "response": {
+          "notifications": "object",
+          "privacy": "object"
+        }
+      },
+      "change_password": {
+        "method": "POST",
+        "endpoint": "/api/user/change-password",
+        "auth": "Bearer token",
+        "request": {
+          "currentPassword": "string (required)",
+          "newPassword": "string (required, min 8 chars)",
+          "confirmPassword": "string (must match newPassword)"
+        },
+        "response": {
+          "message": "Password changed successfully"
+        }
+      },
+      "export_data": {
+        "method": "GET",
+        "endpoint": "/api/user/export-data",
+        "auth": "Bearer token",
+        "response": "JSON file download"
+      },
+      "delete_account": {
+        "method": "DELETE",
+        "endpoint": "/api/user/account",
+        "auth": "Bearer token",
+        "response": {
+          "message": "Account deleted successfully"
+        }
+      }
+    },
+    "subscriptions": {
+      "get_current": {
+        "method": "GET",
+        "endpoint": "/api/subscriptions/my-subscription",
+        "auth": "Bearer token",
+        "response": {
+          "plan": "string (Free|Premium|Professional)",
+          "renewalDate": "Date",
+          "status": "string (active|inactive|cancelled)"
+        }
+      },
+      "upgrade": {
+        "method": "POST",
+        "endpoint": "/api/subscriptions/upgrade",
+        "auth": "Bearer token",
+        "request": {
+          "plan": "string (Premium|Professional)"
+        },
+        "response": {
+          "message": "Subscription upgraded",
+          "plan": "string",
+          "renewalDate": "Date"
+        }
+      },
+      "cancel": {
+        "method": "POST",
+        "endpoint": "/api/subscriptions/cancel",
+        "auth": "Bearer token",
+        "request": {},
+        "response": {
+          "message": "Subscription cancelled",
+          "plan": "Free",
+          "status": "cancelled"
+        }
+      },
+      "billing_history": {
+        "method": "GET",
+        "endpoint": "/api/subscriptions/billing-history",
+        "auth": "Bearer token",
+        "response": [
+          {
+            "_id": "ObjectId",
+            "invoiceId": "string",
+            "amount": "number",
+            "date": "Date",
+            "status": "string (paid|pending)"
+          }
+        ]
+      }
+    },
+    "support": {
+      "create_ticket": {
+        "method": "POST",
+        "endpoint": "/api/support/create-ticket",
+        "auth": "Bearer token",
+        "request": {
+          "subject": "string (required, min 5)",
+          "description": "string (required, min 20)",
+          "category": "string (technical|payment|account|jobs|subscription|other)",
+          "priority": "string (low|medium|high|urgent)",
+          "contactMethod": "string (email|phone|chat)"
+        },
+        "response": {
+          "_id": "ObjectId",
+          "ticketId": "string",
+          "status": "open",
+          "createdAt": "Date"
+        }
+      },
+      "get_faq": {
+        "method": "GET",
+        "endpoint": "/api/faq",
+        "auth": "Bearer token",
+        "response": [
+          {
+            "_id": "ObjectId",
+            "question": "string",
+            "answer": "string",
+            "category": "string"
+          }
+        ]
+      }
+    }
+  },
+  "frontend_field_mappings": {
+    "teacher_profile_form": {
+      "name": "Full Name",
+      "email": "Email (read-only)",
+      "subject": "Subject Expertise",
+      "experience": "Years of Experience",
+      "qualifications": "Qualifications"
+    },
+    "institution_profile_form": {
+      "name": "Full Name",
+      "email": "Email (read-only)",
+      "schoolName": "School Name",
+      "location": "Location",
+      "about": "About School"
+    }
+  },
+  "validation_rules": {
+    "password": "minimum 8 characters, alphanumeric",
+    "email": "valid email format",
+    "name": "string, required",
+    "phone": "valid phone format if provided",
+    "experience": "number >= 0",
+    "priority": "one of: low, medium, high, urgent"
+  },
+  "error_responses": {
+    "401": {
+      "message": "Unauthorized - invalid or expired token",
+      "action": "redirect to login"
+    },
+    "400": {
+      "message": "Bad Request - validation failed",
+      "action": "display validation errors"
+    },
+    "404": {
+      "message": "Not Found - resource doesn't exist",
+      "action": "show 404 page"
+    },
+    "500": {
+      "message": "Server Error",
+      "action": "retry or contact support"
+    }
+  }
+}

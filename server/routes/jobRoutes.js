@@ -23,9 +23,9 @@ const jobValidation = [
         .isLength({ min: 2 }).withMessage("Location must be at least 2 characters"),
     check("experience")
         .isInt({ min: 0 }).withMessage("Experience must be a positive number"),
-    check("description")
+    check("jobDescription")
         .notEmpty().withMessage("Job description is required")
-        .isLength({ min: 50, max: 5000 }).withMessage("Description must be 50-5000 characters"),
+        .isLength({ min: 50, max: 5000 }).withMessage("Job description must be 50-5000 characters"),
     check("requirements")
         .notEmpty().withMessage("Requirements are required")
         .isLength({ min: 20 }).withMessage("Requirements must be at least 20 characters")
@@ -54,7 +54,7 @@ router.get('/:id/details', jobSearchController.getJobDetails);
 
 router.post("/create", authenticate, jobValidation, handleValidationErrors, jobController.createJob);
 router.post("/", authenticate, jobValidation, handleValidationErrors, jobController.createJob);
-router.get("/my-jobs", authenticate, jobController.getMyJobs);
+router.get('/my-jobs', authenticate, jobController.getMyJobs);
 router.get("/:id", authenticate, jobController.getJobById);
 router.put("/:id", authenticate, jobValidation, handleValidationErrors, jobController.updateJob);
 router.delete("/:id", authenticate, jobController.deleteJob);

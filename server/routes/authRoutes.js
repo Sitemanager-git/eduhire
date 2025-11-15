@@ -2,6 +2,7 @@
  * Authentication Routes - Updated & Production Ready
  * Features: Register, Login, Get Current User, Logout
  * Middleware: Auth verification on protected routes
+ * Version: 2.1 (November 9, 2025 - Day 14 Fix)
  */
 
 const express = require('express');

@@ -1,24 +1,29 @@
-﻿require('dotenv').config();
+// server.js - Eduhire Backend Server (COMPLETE & CORRECTED)
+// All routes properly organized, all middleware correctly initialized
+
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 
+// ============ INITIALIZE APP & DATABASE ============
 const app = express();
+const dotenv = require('dotenv');
+dotenv.config();
 
-const authRoutes = require('./routes/authRoutes');
-const jobRoutes = require('./routes/jobRoutes');
-const applicationRoutes = require('./routes/applicationRoutes');
-const institutionRoutes = require('./routes/institutionRoutes');
-
+// ============ MIDDLEWARE SETUP ============
+// CORS - Must be before routes
 app.use(cors({
     origin: process.env.CLIENT_URL || 'http://localhost:3000',
     credentials: true
 }));
 
+// Body parser - Must be before routes
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// ============ RATE LIMITING ============
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 100,
@@ -33,6 +38,45 @@ const authLimiter = rateLimit({
     message: 'Too many login attempts, please try again later.'
 });
 
+// Apply general rate limiter
+app.use('/api/', limiter);
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+
+// ============ ROUTE IMPORTS ============
+const authRoutes = require('./routes/authRoutes');
+const jobRoutes = require('./routes/jobRoutes');
+const applicationRoutes = require('./routes/applicationRoutes');
+const institutionRoutes = require('./routes/institutionRoutes');
+const teacherRoutes = require('./routes/teacherRoutes');
+const userRoutes = require('./routes/userRoutes');
+const subscriptionRoutes = require('./routes/subscriptionRoutes');
+const supportRoutes = require('./routes/supportRoutes');
+const locationRoutes = require('./routes/location');
+const reviewRoutes = require('./routes/reviewRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const savedSearchRoutes = require('./routes/savedSearchRoutes');
+const bookmarkRoutes = require('./routes/bookmarkRoutes');
+
+// ============ ROUTE REGISTRATION ============
+// IMPORTANT: Register routes AFTER middleware setup
+app.use('/api/auth', authRoutes);
+app.use('/api/jobs', jobRoutes);
+app.use('/api/applications', applicationRoutes);
+app.use('/api/institutions', institutionRoutes);
+app.use('/api/teachers', teacherRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/support', supportRoutes);
+app.use('/api/locations', locationRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/saved-searches', savedSearchRoutes);
+app.use('/api/bookmarks', bookmarkRoutes);
+
+// ============ DATABASE CONNECTION ============
 const uri = process.env.MONGO_URI;
 
 if (!uri) {
@@ -64,15 +108,7 @@ const connectDB = async () => {
     }
 };
 
-app.use('/api/', limiter);
-app.use('/api/auth/login', authLimiter);
-app.use('/api/auth/register', authLimiter);
-
-app.use('/api/auth', authRoutes);
-app.use('/api/jobs', jobRoutes);
-app.use('/api/applications', applicationRoutes);
-app.use('/api/institutions', institutionRoutes);
-
+// ============ HEALTH & INFO ENDPOINTS ============
 app.get('/', (req, res) => {
     res.json({
         message: 'Eduhire API Server',
@@ -99,6 +135,7 @@ app.get('/api/health', (req, res) => {
     }
 });
 
+// ============ 404 ERROR HANDLER ============
 app.use((req, res) => {
     res.status(404).json({
         success: false,
@@ -108,6 +145,7 @@ app.use((req, res) => {
     });
 });
 
+// ============ ERROR HANDLER MIDDLEWARE ============
 app.use((err, req, res, next) => {
     console.error('Error:', err.stack);
 
@@ -155,6 +193,7 @@ app.use((err, req, res, next) => {
     });
 });
 
+// ============ GRACEFUL SHUTDOWN ============
 process.on('SIGTERM', () => {
     console.log('SIGTERM signal received: closing HTTP server');
     server.close(() => {
@@ -177,6 +216,7 @@ process.on('SIGINT', () => {
     });
 });
 
+// ============ START SERVER ============
 let server;
 
 (async () => {
@@ -187,15 +227,30 @@ let server;
         server = app.listen(PORT, () => {
             console.log('');
             console.log('═══════════════════════════════════════');
-            console.log(`Server running on http://localhost:${PORT}`);
-            console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-            console.log(`Started at: ${new Date().toLocaleString()}`);
+            console.log(`✅ Server running on http://localhost:${PORT}`);
+            console.log(`📦 Environment: ${process.env.NODE_ENV || 'development'}`);
+            console.log(`🕐 Started at: ${new Date().toLocaleString()}`);
             console.log('═══════════════════════════════════════');
+            console.log('');
+
+            // List all registered routes for debugging
+            console.log('📍 Registered Routes:');
+            console.log('  ✓ /api/auth');
+            console.log('  ✓ /api/jobs');
+            console.log('  ✓ /api/applications');
+            console.log('  ✓ /api/institutions');
+            console.log('  ✓ /api/teachers');
+            console.log('  ✓ /api/locations');
+            console.log('  ✓ /api/reviews');
+            console.log('  ✓ /api/dashboard');
+            console.log('  ✓ /api/notifications');
+            console.log('  ✓ /api/saved-searches');
+            console.log('  ✓ /api/bookmarks');
             console.log('');
         });
 
     } catch (error) {
-        console.error('Failed to start server:', error);
+        console.error('❌ Failed to start server:', error);
         process.exit(1);
     }
 })();

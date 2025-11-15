@@ -1,12 +1,25 @@
 ﻿/**
- * Authentication Controller - Production Ready
- * Features: Register, Login, Get Current User
- * Version: 2.0 (Updated October 2025)
+ * Authentication Controller - Production Ready WITH EMAIL NOTIFICATIONS
+ * Features: Register, Login, Get Current User, Password Management
+ * Version: 2.2 (Updated November 9, 2025 - Day 14 Corrections)
  */
 
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+
+// EMAIL IMPORTS (conditional - won't break if email service not set up yet)
+let sendMail, renderTemplate;
+try {
+  const emailService = require('../utils/emailService');
+  const emailTemplates = require('../utils/emailTemplates');
+  sendMail = emailService.sendMail;
+  renderTemplate = emailTemplates.renderTemplate;
+} catch (err) {
+  console.warn('⚠️  Email service not configured - emails will be skipped');
+  sendMail = null;
+  renderTemplate = null;
+}
 
 /**
  * @desc    Register new user
@@ -66,7 +79,37 @@ exports.register = async (req, res) => {
 
         await user.save();
 
-        console.log(` New ${userType} registered: ${email}`);
+        console.log(`✓ New ${userType} registered: ${email}`);
+
+        // ***** EMAIL NOTIFICATION (NON-BLOCKING) *****
+        if (sendMail && renderTemplate) {
+            setImmediate(async () => {
+                try {
+                    const templateName = userType === 'teacher' ? 'welcome-teacher' : 'welcome-institution';
+                    
+                    const emailData = {
+                        name: profile?.fullName || profile?.name || 'User',
+                        institutionName: profile?.institutionName || 'Institution',
+                        email: user.email,
+                        profileUrl: `${process.env.CLIENT_URL || 'http://localhost:3000'}/create-${userType}-profile`,
+                        dashboardUrl: `${process.env.CLIENT_URL || 'http://localhost:3000'}/dashboard`
+                    };
+
+                    await sendMail({
+                        to: user.email,
+                        subject: 'Welcome to Eduhire!',
+                        html: renderTemplate(templateName, emailData),
+                        text: `Welcome to Eduhire! Your ${userType} account has been created successfully.`
+                    });
+
+                    console.log(`✓ Welcome email sent to ${userType}:`, user.email);
+                } catch (emailError) {
+                    console.error('⚠️  Failed to send welcome email:', emailError.message);
+                    // Don't fail registration if email fails
+                }
+            });
+        }
+        // ***** EMAIL NOTIFICATION END *****
 
         res.status(201).json({
             success: true,
@@ -101,65 +144,90 @@ exports.register = async (req, res) => {
  * @access  Public
  */
 exports.login = async (req, res) => {
-    try {
-        const { email, password } = req.body;
-
-        // Validate input
-        if (!email || !password) {
-            return res.status(400).json({
-                error: 'Email and password are required'
-            });
-        }
-
-        // Find user by email
-        const user = await User.findOne({ email: email.toLowerCase() });
-        if (!user) {
-            return res.status(401).json({
-                error: 'Invalid credentials',
-                message: 'Email or password is incorrect'
-            });
-        }
-
-        // Check if account is active
-        if (user.status !== 'active') {
-            return res.status(403).json({
-                error: 'Account suspended',
-                message: 'Your account has been suspended. Please contact support.'
-            });
-        }
-
-        // Compare password using model method
-        const isMatch = await user.comparePassword(password);
-        if (!isMatch) {
-            return res.status(401).json({
-                error: 'Invalid credentials',
-                message: 'Email or password is incorrect'
-            });
-        }
-
-        // Generate JWT auth token using model method
-        const token = user.generateAuthToken();
-
-        console.log(` ${user.userType} logged in: ${email}`);
-
-        res.json({
-            success: true,
-            token: token,
-            user: {
-                _id: user._id,
-                email: user.email,
-                userType: user.userType,
-                profileCompleted: user.profile?.completed || false
-            }
-        });
-
-    } catch (error) {
-        console.error('Login error:', error);
-        res.status(500).json({
-            error: 'Server error during login',
-            message: error.message
-        });
+  try {
+    const { email, password } = req.body;
+    
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({ 
+        error: 'Email and password are required' 
+      });
     }
+    
+    // Find user by email (case-insensitive)
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    
+    if (!user) {
+      return res.status(401).json({ 
+        error: 'Invalid credentials',
+        message: 'Email or password is incorrect'
+      });
+    }
+    
+    // Check if account is active
+    if (user.status && user.status !== 'active') {
+      return res.status(403).json({ 
+        error: 'Account suspended',
+        message: 'Your account has been suspended. Please contact support.'
+      });
+    }
+    
+    // CRITICAL: Use schema method with fallback
+    // First try to use the schema method defined in User model
+    let isMatch;
+    if (typeof user.comparePassword === 'function') {
+      // Schema method exists - use it
+      isMatch = await user.comparePassword(password);
+    } else {
+      // Fallback: Schema method doesn't exist, use direct bcrypt
+      console.warn('⚠️  Schema comparePassword method not found, using direct bcrypt');
+      isMatch = await bcrypt.compare(password, user.password);
+    }
+    
+    if (!isMatch) {
+      return res.status(401).json({ 
+        error: 'Invalid credentials',
+        message: 'Email or password is incorrect'
+      });
+    }
+    
+    // Generate JWT auth token using schema method with fallback
+    let token;
+    if (typeof user.generateAuthToken === 'function') {
+      // Schema method exists - use it
+      token = user.generateAuthToken();
+    } else {
+      // Fallback: Schema method doesn't exist, generate directly
+      console.warn('⚠️  Schema generateAuthToken method not found, generating directly');
+      const payload = {
+        id: user._id,
+        email: user.email,
+        userType: user.userType
+      };
+      token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
+    }
+    
+    console.log(`✓ ${user.userType} logged in: ${user.email}`);
+    
+    // Return success response
+    res.json({ 
+      success: true, 
+      token: token, 
+      user: {
+        id: user._id,
+        email: user.email,
+        userType: user.userType,
+        profileCompleted: user.profile?.completed || false
+      }
+    });
+    
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ 
+      error: 'Server error during login',
+      message: error.message
+    });
+  }
 };
 
 /**
@@ -203,16 +271,15 @@ exports.getCurrentUser = async (req, res) => {
 /**
  * @desc    Logout user (optional - primarily frontend)
  * @route   POST /api/auth/logout
- * @access  Private
+ * @access  Private (or Public)
  */
 exports.logout = async (req, res) => {
     try {
         // In JWT auth, logout is mainly handled on frontend by removing token
         // But we can log the event for analytics
-
         const userId = req.user?.id;
         if (userId) {
-            console.log(`User logged out: ${userId}`);
+            console.log(`✓ User logged out: ${userId}`);
         }
 
         res.json({
@@ -292,19 +359,56 @@ exports.updatePassword = async (req, res) => {
             });
         }
 
-        // Verify old password
-        const isMatch = await user.comparePassword(oldPassword);
+        // Verify old password using schema method with fallback
+        let isMatch;
+        if (typeof user.comparePassword === 'function') {
+            isMatch = await user.comparePassword(oldPassword);
+        } else {
+            isMatch = await bcrypt.compare(oldPassword, user.password);
+        }
+        
         if (!isMatch) {
             return res.status(401).json({
                 error: 'Current password is incorrect'
             });
         }
 
-        // Update password
+        // Update password (will be hashed by pre-save hook)
         user.password = newPassword;
         await user.save();
 
-        console.log(`Password updated for: ${user.email}`);
+        console.log(`✓ Password updated for: ${user.email}`);
+
+        // ***** EMAIL NOTIFICATION (NON-BLOCKING) *****
+        if (sendMail && renderTemplate) {
+            setImmediate(async () => {
+                try {
+                    const emailData = {
+                        name: user.profile?.fullName || user.profile?.institutionName || user.profile?.name || 'User',
+                        email: user.email,
+                        changedDate: new Date().toLocaleString('en-IN', { 
+                            timeZone: 'Asia/Kolkata',
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })
+                    };
+
+                    await sendMail({
+                        to: user.email,
+                        subject: 'Password Changed - Eduhire',
+                        html: renderTemplate('password-changed', emailData),
+                        text: `Your Eduhire password has been changed on ${emailData.changedDate}`
+                    });
+
+                    console.log('✓ Password change notification sent to:', user.email);
+                } catch (emailError) {
+                    console.error('⚠️  Failed to send password change email:', emailError.message);
+                }
+            });
+        }
 
         res.json({
             success: true,
@@ -337,8 +441,18 @@ exports.refreshToken = async (req, res) => {
             });
         }
 
-        // Generate new token
-        const newToken = user.generateAuthToken();
+        // Generate new token using schema method with fallback
+        let newToken;
+        if (typeof user.generateAuthToken === 'function') {
+            newToken = user.generateAuthToken();
+        } else {
+            const payload = {
+                id: user._id,
+                email: user.email,
+                userType: user.userType
+            };
+            newToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
+        }
 
         res.json({
             success: true,
@@ -379,8 +493,9 @@ exports.forgotPassword = async (req, res) => {
         });
 
         if (user) {
-            // TODO: Send email with reset link
+            // TODO: Generate reset token and send email
             console.log(`Password reset requested for: ${email}`);
+            // Implement reset token generation and email sending here
         }
 
     } catch (error) {

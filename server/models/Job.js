@@ -81,27 +81,23 @@ const jobSchema = new mongoose.Schema({
     },
 
     // Premium Features
-    isfeatured: {  // FIXED: Consistent camelCase (was is_featured)
+    isfeatured: {
         type: Boolean,
         default: false,
         index: true
     },
-    ispriority: {  // FIXED: Consistent camelCase (was is_priority)
-        type: Boolean,
-        default: false
-    },
-    badgetype: {  // FIXED: Consistent camelCase (was badge_type)
-        type: String,
-        enum: ["featured", "urgent", "hot", "new", null],
-        default: null
-    },
-    featureduntil: {  // FIXED: Consistent camelCase (was featured_until)
+    featureduntil: {
         type: Date
     },
-    priorityplacementtier: {  // FIXED: Consistent camelCase (was priority_placement_tier)
+        badgetype: {
+        type: String,
+        enum: ['featured', 'urgent', 'hot', 'new', null],
+        default: null
+    },
+    priorityplacementtier: {
         type: Number,
         enum: [1, 2, 3],
-        default: 3
+        default: 3  // 1 = highest priority
     },
 
     // Analytics

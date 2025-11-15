@@ -11,6 +11,291 @@ const mongoose = require('mongoose');
  * Search and filter jobs with pagination
  * GET /api/jobs/search
  */
+
+
+exports.advancedSearchJobs = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      search = '',
+      subject,
+      location,
+      level,
+      experienceMin,
+      experienceMax,
+      salaryMin,
+      salaryMax,
+      qualification,
+      jobType,
+      institutionType,
+      sortBy = 'createdAt',
+      sortOrder = 'desc'
+    } = req.query;
+
+    // Build comprehensive query
+    const query = {
+      status: 'active',
+      isDeleted: false,
+      expiresAt: { $gt: new Date() }
+    };
+
+    // Text search
+    if (search && search.trim()) {
+      query.$text = { $search: search.trim() };
+    }
+
+    // Experience range filter
+    if (experienceMin || experienceMax) {
+      query.experience = {};
+      if (experienceMin) query.experience.$gte = Number(experienceMin);
+      if (experienceMax) query.experience.$lte = Number(experienceMax);
+    }
+
+    // Salary range filter
+    if (salaryMin || salaryMax) {
+      const minVal = Number(salaryMin) || 0;
+      const maxVal = Number(salaryMax) || 999999;
+      query.$and = [
+        { 'salary.min': { $lte: maxVal } },
+        { 'salary.max': { $gte: minVal } }
+      ];
+    }
+
+    // Qualification filter (array matching)
+    if (qualification) {
+      const qualArray = Array.isArray(qualification) 
+        ? qualification 
+        : [qualification];
+      query.qualification = { $in: qualArray };
+    }
+
+    // Job type filter
+    if (jobType) {
+      const jobTypeArray = Array.isArray(jobType) 
+        ? jobType 
+        : [jobType];
+      query.employmentType = { $in: jobTypeArray };
+    }
+
+    // Institution type filter
+    if (institutionType) {
+      const instTypeArray = Array.isArray(institutionType) 
+        ? institutionType 
+        : [institutionType];
+      
+      // Find institutions matching these types
+      const InstitutionProfile = require('../models/InstitutionProfile');
+      const matchingInstitutions = await InstitutionProfile.find({
+        curriculumOffered: { $in: instTypeArray }
+      }).select('_id');
+      
+      const instIds = matchingInstitutions.map(inst => inst._id);
+      query.institutionid = { $in: instIds };
+    }
+
+    // Subject filter
+    if (subject) {
+      const subjectArray = Array.isArray(subject) ? subject : [subject];
+      query.subject = { $in: subjectArray };
+    }
+
+    // Location filter
+    if (location && location.trim()) {
+      query.location = { $regex: location.trim(), $options: 'i' };
+    }
+
+    // Education level filter
+    if (level) {
+      const levelArray = Array.isArray(level) ? level : [level];
+      query.level = { $in: levelArray };
+    }
+
+    // Build sort
+    const sort = {};
+    sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+    // Pagination
+    const pageNum = Math.max(1, parseInt(page));
+    const limitNum = Math.min(50, Math.max(1, parseInt(limit)));
+    const skip = (pageNum - 1) * limitNum;
+
+    console.log('Advanced search query:', JSON.stringify(query, null, 2));
+
+    // Execute query
+    const jobs = await Job.find(query)
+      .select('title subject level location salary experience employmentType remote postedAt expiresAt isfeatured badgetype institutionid applicationscount views')
+      .populate('institutionid', 'institutionName type location')
+      .sort(sort)
+      .skip(skip)
+      .limit(limitNum)
+      .lean()
+      .exec();
+
+    const totalJobs = await Job.countDocuments(query);
+    const totalPages = Math.ceil(totalJobs / limitNum);
+
+    res.status(200).json({
+      success: true,
+      jobs,
+      pagination: {
+        currentPage: pageNum,
+        totalPages,
+        totalJobs,
+        limit: limitNum,
+        hasNextPage: pageNum < totalPages,
+        hasPrevPage: pageNum > 1
+      },
+      appliedFilters: {
+        experienceRange: [experienceMin, experienceMax],
+        salaryRange: [salaryMin, salaryMax],
+        qualification,
+        jobType,
+        institutionType,
+        subject,
+        level
+      }
+    });
+
+  } catch (error) {
+    console.error('Advanced search error:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to perform advanced search',
+      message: error.message
+    });
+  }
+};
+
+/**
+ * Get similar jobs based on subject, location, and level
+ * GET /api/jobs/search/:id/similar
+ */
+exports.getSimilarJobs = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { limit = 5 } = req.query;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid job ID format' 
+      });
+    }
+
+    // Get current job
+    const currentJob = await Job.findById(id).select('subject level location institutionid');
+
+    if (!currentJob) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Job not found' 
+      });
+    }
+
+    // Extract city from location
+    const locationCity = currentJob.location.split(',')[0].trim();
+
+    // Build similarity query with scoring
+    // Priority: 1. Same subject (most important)
+    //          2. Same location (city)
+    //          3. Same level
+    const similarJobs = await Job.aggregate([
+      {
+        $match: {
+          _id: { $ne: new mongoose.Types.ObjectId(id) },
+          status: 'active',
+          isDeleted: false,
+          expiresAt: { $gt: new Date() }
+        }
+      },
+      {
+        $addFields: {
+          similarityScore: {
+            $add: [
+              // Subject match: +50 points
+              { $cond: [{ $eq: ['$subject', currentJob.subject] }, 50, 0] },
+              // Location match: +30 points
+              { 
+                $cond: [
+                  { $regexMatch: { input: '$location', regex: locationCity, options: 'i' } },
+                  30,
+                  0
+                ]
+              },
+              // Level match: +20 points
+              { $cond: [{ $eq: ['$level', currentJob.level] }, 20, 0] },
+              // Same institution: -10 points (prefer different institutions)
+              { 
+                $cond: [
+                  { $eq: ['$institutionid', currentJob.institutionid] },
+                  -10,
+                  0
+                ]
+              },
+              // Featured jobs: +5 points
+              { $cond: ['$isfeatured', 5, 0] }
+            ]
+          }
+        }
+      },
+      {
+        $match: {
+          similarityScore: { $gt: 20 } // Minimum threshold
+        }
+      },
+      {
+        $sort: { similarityScore: -1, postedAt: -1 }
+      },
+      {
+        $limit: parseInt(limit)
+      },
+      {
+        $project: {
+          title: 1,
+          subject: 1,
+          level: 1,
+          location: 1,
+          salary: 1,
+          experience: 1,
+          employmentType: 1,
+          isfeatured: 1,
+          badgetype: 1,
+          institutionid: 1,
+          postedAt: 1,
+          similarityScore: 1
+        }
+      }
+    ]);
+
+    // Populate institution details
+    await Job.populate(similarJobs, {
+      path: 'institutionid',
+      select: 'institutionName type location'
+    });
+
+    res.status(200).json({
+      success: true,
+      count: similarJobs.length,
+      baseJob: {
+        id: currentJob._id,
+        subject: currentJob.subject,
+        level: currentJob.level,
+        location: currentJob.location
+      },
+      similarJobs
+    });
+
+  } catch (error) {
+    console.error('Get similar jobs error:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch similar jobs',
+      message: error.message
+    });
+  }
+};
+
 exports.searchJobs = async (req, res) => {
     try {
         const {

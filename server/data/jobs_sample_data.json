@@ -1,0 +1,411 @@
+[
+  {
+    "_id": {
+      "$oid": "652f4c8b9d1e5a0012345678"
+    },
+    "title": "Senior Mathematics Teacher",
+    "institutionid": {
+      "$oid": "652f4c8b9d1e5a0012345679"
+    },
+    "subject": "Mathematics",
+    "level": "secondary",
+    "location": "Delhi, India",
+    "salary": {
+      "min": 30000,
+      "max": 50000,
+      "currency": "INR",
+      "period": "monthly"
+    },
+    "experience": 5,
+    "jobDescription": "We are looking for an experienced Mathematics teacher to join our prestigious school. You will teach classes 9-12 and have the opportunity to develop curriculum. Must have strong communication skills and passion for teaching.",
+    "requirements": "Bachelor's degree in Mathematics, 5+ years teaching experience, knowledge of CBSE/ICSE curriculum",
+    "desirables": "M.Ed qualification preferred, experience with online teaching platforms",
+    "status": "active",
+    "postedAt": "2025-10-23T08:57:00.480592",
+    "expiresAt": "2025-11-22T08:57:00.480606",
+    "isfeatured": true,
+    "ispriority": false,
+    "badgetype": "featured",
+    "employmentType": "full-time",
+    "remote": false,
+    "benefits": [
+      "Health Insurance",
+      "Paid Leave",
+      "Professional Development",
+      "Bonus"
+    ],
+    "applicationscount": 0,
+    "views": 0,
+    "applicants": [],
+    "isDeleted": false,
+    "createdAt": "2025-10-23T08:57:00.480615",
+    "updatedAt": "2025-10-23T08:57:00.480617"
+  },
+  {
+    "_id": {
+      "$oid": "652f4c8b9d1e5a0012345680"
+    },
+    "title": "Physics Teacher",
+    "institutionid": {
+      "$oid": "652f4c8b9d1e5a0012345679"
+    },
+    "subject": "Physics",
+    "level": "secondary",
+    "location": "Mumbai, India",
+    "salary": {
+      "min": 35000,
+      "max": 55000,
+      "currency": "INR",
+      "period": "monthly"
+    },
+    "experience": 3,
+    "jobDescription": "Looking for a dedicated Physics teacher to teach classes 8-12. Experience with practical demonstrations and lab work required. Must be enthusiastic about science education.",
+    "requirements": "Bachelor's in Physics, 3+ years teaching experience, knowledge of lab equipment",
+    "desirables": "M.Sc Physics, experience with science fairs and competitions",
+    "status": "active",
+    "postedAt": "2025-10-23T08:57:00.480624",
+    "expiresAt": "2025-11-17T08:57:00.480626",
+    "isfeatured": false,
+    "ispriority": true,
+    "badgetype": "urgent",
+    "employmentType": "full-time",
+    "remote": false,
+    "benefits": [
+      "Health Insurance",
+      "Paid Leave",
+      "Staff Meals"
+    ],
+    "applicationscount": 0,
+    "views": 0,
+    "applicants": [],
+    "isDeleted": false,
+    "createdAt": "2025-10-23T08:57:00.480630",
+    "updatedAt": "2025-10-23T08:57:00.480631"
+  },
+  {
+    "_id": {
+      "$oid": "652f4c8b9d1e5a0012345681"
+    },
+    "title": "English Language Teacher",
+    "institutionid": {
+      "$oid": "652f4c8b9d1e5a0012345680"
+    },
+    "subject": "English",
+    "level": "primary",
+    "location": "Bangalore, India",
+    "salary": {
+      "min": 25000,
+      "max": 40000,
+      "currency": "INR",
+      "period": "monthly"
+    },
+    "experience": 2,
+    "jobDescription": "Seeking enthusiastic English teacher for primary classes. Focus on developing communication and reading skills. Fun and interactive teaching methods required.",
+    "requirements": "Bachelor's in English/Education, 2+ years experience, proficiency in English",
+    "desirables": "Training in Montessori or play-based learning methods",
+    "status": "active",
+    "postedAt": "2025-10-23T08:57:00.480637",
+    "expiresAt": "2025-11-27T08:57:00.480639",
+    "isfeatured": false,
+    "ispriority": false,
+    "badgetype": null,
+    "employmentType": "full-time",
+    "remote": false,
+    "benefits": [
+      "Health Insurance",
+      "Professional Development"
+    ],
+    "applicationscount": 0,
+    "views": 0,
+    "applicants": [],
+    "isDeleted": false,
+    "createdAt": "2025-10-23T08:57:00.480642",
+    "updatedAt": "2025-10-23T08:57:00.480644"
+  },
+  {
+    "_id": {
+      "$oid": "652f4c8b9d1e5a0012345682"
+    },
+    "title": "Computer Science Teacher",
+    "institutionid": {
+      "$oid": "652f4c8b9d1e5a0012345681"
+    },
+    "subject": "Computer Science",
+    "level": "secondary",
+    "location": "Chennai, India",
+    "salary": {
+      "min": 40000,
+      "max": 65000,
+      "currency": "INR",
+      "period": "monthly"
+    },
+    "experience": 4,
+    "jobDescription": "We seek a passionate Computer Science teacher to inspire the next generation of tech professionals. Knowledge of programming languages and web development essential.",
+    "requirements": "Bachelor's in CS/IT, 4+ years teaching experience, proficiency in Python/Java/C++",
+    "desirables": "Experience with coding competitions, web development, AI/ML basics",
+    "status": "active",
+    "postedAt": "2025-10-23T08:57:00.480649",
+    "expiresAt": "2025-11-22T08:57:00.480650",
+    "isfeatured": true,
+    "ispriority": true,
+    "badgetype": "hot",
+    "employmentType": "full-time",
+    "remote": false,
+    "benefits": [
+      "Health Insurance",
+      "Paid Leave",
+      "Professional Development",
+      "Bonus",
+      "Free Laptop"
+    ],
+    "applicationscount": 0,
+    "views": 0,
+    "applicants": [],
+    "isDeleted": false,
+    "createdAt": "2025-10-23T08:57:00.480654",
+    "updatedAt": "2025-10-23T08:57:00.480656"
+  },
+  {
+    "_id": {
+      "$oid": "652f4c8b9d1e5a0012345683"
+    },
+    "title": "Chemistry Teacher",
+    "institutionid": {
+      "$oid": "652f4c8b9d1e5a0012345679"
+    },
+    "subject": "Chemistry",
+    "level": "secondary",
+    "location": "Hyderabad, India",
+    "salary": {
+      "min": 32000,
+      "max": 52000,
+      "currency": "INR",
+      "period": "monthly"
+    },
+    "experience": 3,
+    "jobDescription": "Chemistry teacher needed for high school. Should be able to conduct practical experiments and make complex concepts easy to understand.",
+    "requirements": "Bachelor's in Chemistry, 3+ years experience, knowledge of lab safety",
+    "desirables": "M.Sc Chemistry, experience with science projects and research",
+    "status": "active",
+    "postedAt": "2025-10-23T08:57:00.480660",
+    "expiresAt": "2025-11-20T08:57:00.480662",
+    "isfeatured": false,
+    "ispriority": false,
+    "badgetype": null,
+    "employmentType": "full-time",
+    "remote": false,
+    "benefits": [
+      "Health Insurance",
+      "Paid Leave"
+    ],
+    "applicationscount": 0,
+    "views": 0,
+    "applicants": [],
+    "isDeleted": false,
+    "createdAt": "2025-10-23T08:57:00.480665",
+    "updatedAt": "2025-10-23T08:57:00.480667"
+  },
+  {
+    "_id": {
+      "$oid": "652f4c8b9d1e5a0012345684"
+    },
+    "title": "Biology Teacher",
+    "institutionid": {
+      "$oid": "652f4c8b9d1e5a0012345680"
+    },
+    "subject": "Biology",
+    "level": "higher",
+    "location": "Pune, India",
+    "salary": {
+      "min": 38000,
+      "max": 60000,
+      "currency": "INR",
+      "period": "monthly"
+    },
+    "experience": 6,
+    "jobDescription": "Experienced Biology teacher for undergraduate program. Research background preferred. Will help guide student projects.",
+    "requirements": "Bachelor's/Master's in Biology, 6+ years experience, research knowledge",
+    "desirables": "Ph.D in Biology, published research papers, lab management experience",
+    "status": "active",
+    "postedAt": "2025-10-23T08:57:00.480672",
+    "expiresAt": "2025-11-12T08:57:00.480673",
+    "isfeatured": true,
+    "ispriority": false,
+    "badgetype": "featured",
+    "employmentType": "full-time",
+    "remote": false,
+    "benefits": [
+      "Health Insurance",
+      "Paid Leave",
+      "Research Grant",
+      "Professional Development"
+    ],
+    "applicationscount": 0,
+    "views": 0,
+    "applicants": [],
+    "isDeleted": false,
+    "createdAt": "2025-10-23T08:57:00.480677",
+    "updatedAt": "2025-10-23T08:57:00.480679"
+  },
+  {
+    "_id": {
+      "$oid": "652f4c8b9d1e5a0012345685"
+    },
+    "title": "Hindi Language Teacher",
+    "institutionid": {
+      "$oid": "652f4c8b9d1e5a0012345681"
+    },
+    "subject": "Hindi",
+    "level": "primary",
+    "location": "Jaipur, India",
+    "salary": {
+      "min": 22000,
+      "max": 38000,
+      "currency": "INR",
+      "period": "monthly"
+    },
+    "experience": 2,
+    "jobDescription": "Looking for enthusiastic Hindi teacher for primary school. Should focus on language skills and cultural awareness.",
+    "requirements": "Bachelor's in Hindi/Education, 2+ years experience, fluent in Hindi",
+    "desirables": "Knowledge of Hindi literature and classical works",
+    "status": "active",
+    "postedAt": "2025-10-23T08:57:00.480683",
+    "expiresAt": "2025-11-24T08:57:00.480685",
+    "isfeatured": false,
+    "ispriority": false,
+    "badgetype": null,
+    "employmentType": "part-time",
+    "remote": false,
+    "benefits": [
+      "Flexible Timing",
+      "Paid Leave"
+    ],
+    "applicationscount": 0,
+    "views": 0,
+    "applicants": [],
+    "isDeleted": false,
+    "createdAt": "2025-10-23T08:57:00.480688",
+    "updatedAt": "2025-10-23T08:57:00.480690"
+  },
+  {
+    "_id": {
+      "$oid": "652f4c8b9d1e5a0012345686"
+    },
+    "title": "Social Studies Teacher",
+    "institutionid": {
+      "$oid": "652f4c8b9d1e5a0012345679"
+    },
+    "subject": "Social Studies",
+    "level": "secondary",
+    "location": "Kolkata, India",
+    "salary": {
+      "min": 28000,
+      "max": 45000,
+      "currency": "INR",
+      "period": "monthly"
+    },
+    "experience": 4,
+    "jobDescription": "Social Studies teacher to teach history, geography and civics. Make learning engaging through projects and discussions.",
+    "requirements": "Bachelor's in History/Geography/Political Science, 4+ years experience",
+    "desirables": "M.A in History or Geography, experience with documentary making",
+    "status": "active",
+    "postedAt": "2025-10-23T08:57:00.480694",
+    "expiresAt": "2025-11-19T08:57:00.480696",
+    "isfeatured": false,
+    "ispriority": false,
+    "badgetype": null,
+    "employmentType": "full-time",
+    "remote": false,
+    "benefits": [
+      "Health Insurance",
+      "Paid Leave"
+    ],
+    "applicationscount": 0,
+    "views": 0,
+    "applicants": [],
+    "isDeleted": false,
+    "createdAt": "2025-10-23T08:57:00.480699",
+    "updatedAt": "2025-10-23T08:57:00.480701"
+  },
+  {
+    "_id": {
+      "$oid": "652f4c8b9d1e5a0012345687"
+    },
+    "title": "Art Teacher",
+    "institutionid": {
+      "$oid": "652f4c8b9d1e5a0012345680"
+    },
+    "subject": "Art",
+    "level": "primary",
+    "location": "Lucknow, India",
+    "salary": {
+      "min": 20000,
+      "max": 35000,
+      "currency": "INR",
+      "period": "monthly"
+    },
+    "experience": 2,
+    "jobDescription": "Creative Art teacher for primary school. Focus on developing artistic skills and creativity in students.",
+    "requirements": "Diploma/Bachelor's in Fine Arts, 2+ years experience, artistic skills",
+    "desirables": "Experience with various art forms, ability to organize art exhibitions",
+    "status": "active",
+    "postedAt": "2025-10-23T08:57:00.480705",
+    "expiresAt": "2025-12-02T08:57:00.480707",
+    "isfeatured": false,
+    "ispriority": false,
+    "badgetype": "new",
+    "employmentType": "full-time",
+    "remote": false,
+    "benefits": [
+      "Creative Freedom",
+      "Paid Leave"
+    ],
+    "applicationscount": 0,
+    "views": 0,
+    "applicants": [],
+    "isDeleted": false,
+    "createdAt": "2025-10-23T08:57:00.480710",
+    "updatedAt": "2025-10-23T08:57:00.480711"
+  },
+  {
+    "_id": {
+      "$oid": "652f4c8b9d1e5a0012345688"
+    },
+    "title": "Physical Education Teacher",
+    "institutionid": {
+      "$oid": "652f4c8b9d1e5a0012345681"
+    },
+    "subject": "Physical Education",
+    "level": "secondary",
+    "location": "Chandigarh, India",
+    "salary": {
+      "min": 26000,
+      "max": 42000,
+      "currency": "INR",
+      "period": "monthly"
+    },
+    "experience": 3,
+    "jobDescription": "PE teacher needed to conduct sports and fitness activities. Should be knowledgeable about various sports and coaching techniques.",
+    "requirements": "Bachelor's/Diploma in PE, 3+ years experience, knowledge of various sports",
+    "desirables": "Sports coaching certification, experience organizing sports events",
+    "status": "active",
+    "postedAt": "2025-10-23T08:57:00.480716",
+    "expiresAt": "2025-11-21T08:57:00.480717",
+    "isfeatured": false,
+    "ispriority": false,
+    "badgetype": null,
+    "employmentType": "full-time",
+    "remote": false,
+    "benefits": [
+      "Health Insurance",
+      "Paid Leave",
+      "Gym Membership"
+    ],
+    "applicationscount": 0,
+    "views": 0,
+    "applicants": [],
+    "isDeleted": false,
+    "createdAt": "2025-10-23T08:57:00.480721",
+    "updatedAt": "2025-10-23T08:57:00.480722"
+  }
+]

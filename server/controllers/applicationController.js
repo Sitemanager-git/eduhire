@@ -9,6 +9,7 @@ const Job = require('../models/Job');
 const TeacherProfile = require('../models/TeacherProfile');
 const InstitutionProfile = require('../models/InstitutionProfile');
 const User = require('../models/User');
+const { createNotification } = require('./notificationController');
 
 // ================================================
 // TEACHER METHODS
@@ -116,6 +117,20 @@ exports.submitApplication = async (req, res) => {
             error: 'Failed to submit application',
             details: error.message
         });
+    }
+    try {
+        await createNotification({
+            userId: institutionProfile.userId, // Get userId from institution
+            type: 'application_received',
+            title: 'New Application Received',
+            message: `${teacher.fullName} applied for ${job.title}`,
+            relatedJobId: jobId,
+            relatedApplicationId: application._id,
+            actionUrl: `/applications-received?jobId=${jobId}`
+        });
+    } catch (notifError) {
+        console.error('Failed to create notification:', notifError);
+        // Don't fail the application if notification fails
     }
 };
 
@@ -422,6 +437,19 @@ exports.shortlistApplication = async (req, res) => {
             error: 'Failed to shortlist application',
             details: error.message
         });
+    }
+    try {
+        const teacher = await TeacherProfile.findById(application.teacherid);
+        await createNotification({
+            userId: teacher.userId,
+            type: 'application_status',
+            title: 'Application Status Updated',
+            message: `Your application for ${job.title} has been ${status}`,
+            relatedApplicationId: application._id,
+            actionUrl: `/my-applications`
+        });
+    } catch (notifError) {
+        console.error('Failed to create notification:', notifError);
     }
 };
 
