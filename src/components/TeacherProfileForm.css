@@ -1,0 +1,84 @@
+.teacher-profile-form-container {
+	min-height: 100vh;
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	padding: 40px 20px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.main-card {
+	max-width: 900px;
+	width: 100%;
+	border-radius: 12px;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.form-title {
+	text-align: center;
+	font-size: 28px;
+	font-weight: 700;
+	color: #1f2937;
+	margin-bottom: 30px;
+}
+
+.steps-container {
+	margin-bottom: 40px;
+}
+
+.form-content {
+	margin-top: 30px;
+}
+
+.step-content {
+	min-height: 400px;
+	margin-bottom: 30px;
+}
+
+.form-card {
+	border: 1px solid #e5e7eb;
+	border-radius: 8px;
+	margin-bottom: 20px;
+}
+
+.steps-action {
+	display: flex;
+	justify-content: center;
+	margin-top: 30px;
+	padding-top: 20px;
+	border-top: 1px solid #e5e7eb;
+}
+
+.ant-checkbox-group {
+	width: 100%;
+}
+
+.ant-upload-drag {
+	border: 2px dashed #d1d5db;
+	border-radius: 8px;
+	background: #f9fafb;
+	transition: all 0.3s;
+}
+
+	.ant-upload-drag:hover {
+		border-color: #667eea;
+	}
+
+/* Responsive design */
+@media (max-width: 768px) {
+	.teacher-profile-form-container {
+		padding: 20px 10px;
+	}
+
+	.main-card {
+		margin: 0;
+	}
+
+	.form-title {
+		font-size: 22px;
+	}
+
+	.step-content {
+		min-height: 300px;
+	}
+}

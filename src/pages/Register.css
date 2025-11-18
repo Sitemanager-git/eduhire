@@ -1,0 +1,397 @@
+/* Register Page Styles */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.register-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 20px;
+}
+
+.register-card {
+  width: 100%;
+  max-width: 500px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  padding: 40px;
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.register-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.register-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+.register-header p {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Form Styles */
+.register-card .ant-form {
+  width: 100%;
+}
+
+.register-card .ant-form-item {
+  margin-bottom: 16px;
+}
+
+.register-card .ant-form-item:last-of-type {
+  margin-bottom: 0;
+}
+
+/* User Type Selection */
+.register-card .ant-form-item-label {
+  margin-bottom: 8px;
+}
+
+.register-card .ant-form-item-label > label {
+  color: #374151;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.register-card .ant-form-item-label > label::after {
+  content: '';
+}
+
+.register-card .ant-radio-group {
+  width: 100%;
+}
+
+.register-card .ant-radio-button-wrapper {
+  width: 48%;
+  margin-right: 2%;
+  margin-bottom: 0;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
+  height: 44px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #6b7280;
+  transition: all 0.3s ease;
+}
+
+.register-card .ant-radio-button-wrapper:nth-child(2) {
+  margin-right: 0;
+}
+
+.register-card .ant-radio-button-wrapper:hover {
+  border-color: #f5576c;
+  color: #f5576c;
+}
+
+.register-card .ant-radio-button-wrapper-checked {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+}
+
+/* Input Fields */
+.register-card .ant-input,
+.register-card .ant-input-password input {
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  padding: 10px 12px;
+  transition: all 0.3s ease;
+  background-color: #f9fafb;
+}
+
+.register-card .ant-input:hover,
+.register-card .ant-input-password input:hover {
+  background-color: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.register-card .ant-input:focus,
+.register-card .ant-input-password input:focus {
+  background-color: white;
+  border-color: #f5576c;
+  box-shadow: 0 0 0 3px rgba(245, 87, 108, 0.1);
+}
+
+.register-card .ant-input-prefix {
+  color: #9ca3af;
+  margin-right: 8px;
+}
+
+/* Password Strength Indicator */
+.register-card .ant-progress {
+  margin: 12px 0;
+}
+
+.register-card .ant-progress-inner {
+  background-color: #f3f4f6;
+}
+
+.register-card .ant-progress-bg {
+  border-radius: 4px;
+}
+
+.register-card small {
+  font-size: 12px;
+  font-weight: 500;
+  display: block;
+  margin-top: 4px;
+}
+
+/* Button Styles */
+.register-card .ant-btn-primary {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  border: none;
+  height: 44px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+  margin-top: 8px;
+  margin-bottom: 16px;
+}
+
+.register-card .ant-btn-primary:hover {
+  box-shadow: 0 6px 20px rgba(245, 87, 108, 0.6);
+  transform: translateY(-2px);
+}
+
+.register-card .ant-btn-primary:active {
+  transform: translateY(0);
+}
+
+.register-card .ant-btn-primary:disabled {
+  background: #d1d5db;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Login Link */
+.login-link {
+  text-align: center;
+  font-size: 14px;
+  color: #6b7280;
+  margin-top: 20px;
+}
+
+.login-link a {
+  color: #f5576c;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.login-link a:hover {
+  color: #f093fb;
+  text-decoration: underline;
+}
+
+/* Error Messages */
+.register-card .ant-form-item-explain-error {
+  font-size: 12px;
+  color: #ef4444;
+  margin-top: 4px;
+}
+
+.register-card .ant-form-item-has-error .ant-input,
+.register-card .ant-form-item-has-error .ant-input-password input {
+  border-color: #ef4444 !important;
+}
+
+.register-card .ant-form-item-has-error .ant-input:focus,
+.register-card .ant-form-item-has-error .ant-input-password input:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+}
+
+/* Success State */
+.register-card .ant-form-item-has-success .ant-input,
+.register-card .ant-form-item-has-success .ant-input-password input {
+  border-color: #52c41a;
+}
+
+.register-card .ant-form-item-has-success .ant-input:focus,
+.register-card .ant-form-item-has-success .ant-input-password input:focus {
+  box-shadow: 0 0 0 3px rgba(82, 196, 26, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .register-container {
+    padding: 12px;
+  }
+
+  .register-card {
+    padding: 24px;
+    max-width: 100%;
+  }
+
+  .register-header h1 {
+    font-size: 24px;
+  }
+
+  .register-header p {
+    font-size: 13px;
+  }
+
+  .register-card .ant-radio-button-wrapper {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 8px;
+  }
+
+  .register-card .ant-radio-button-wrapper:nth-child(2) {
+    margin-bottom: 0;
+  }
+
+  .register-card .ant-btn-primary {
+    height: 40px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 400px) {
+  .register-card {
+    padding: 20px;
+  }
+
+  .register-header h1 {
+    font-size: 22px;
+  }
+
+  .register-card .ant-form-item {
+    margin-bottom: 12px;
+  }
+
+  .login-link {
+    font-size: 13px;
+  }
+}
+
+/* Loading State */
+.register-card .ant-btn-primary.ant-btn-loading {
+  opacity: 0.8;
+}
+
+/* Icon Animations */
+.register-card .anticon {
+  animation: iconFadeIn 0.3s ease-out;
+}
+
+@keyframes iconFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Focus States for Accessibility */
+.register-card .ant-input:focus-visible,
+.register-card .ant-input-password input:focus-visible {
+  outline: 2px solid #f5576c;
+  outline-offset: 2px;
+}
+
+.register-card .ant-radio-button-wrapper:focus-visible {
+  outline: 2px solid #f5576c;
+  outline-offset: 2px;
+}
+
+/* Dark Mode Support (Optional) */
+@media (prefers-color-scheme: dark) {
+  .register-container {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  }
+
+  .register-card {
+    background: #1f2937;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  }
+
+  .register-header h1 {
+    color: #f9fafb;
+  }
+
+  .register-header p {
+    color: #d1d5db;
+  }
+
+  .register-card .ant-form-item-label > label {
+    color: #e5e7eb;
+  }
+
+  .register-card .ant-radio-button-wrapper {
+    background-color: #111827;
+    border-color: #374151;
+    color: #d1d5db;
+  }
+
+  .register-card .ant-radio-button-wrapper:hover {
+    border-color: #f5576c;
+    color: #f5576c;
+  }
+
+  .register-card .ant-input,
+  .register-card .ant-input-password input {
+    background-color: #111827;
+    border-color: #374151;
+    color: #f9fafb;
+  }
+
+  .register-card .ant-input:hover,
+  .register-card .ant-input-password input:hover {
+    background-color: #1f2937;
+    border-color: #4b5563;
+  }
+
+  .register-card .ant-input-prefix {
+    color: #6b7280;
+  }
+
+  .login-link {
+    color: #d1d5db;
+  }
+
+  .register-card .ant-progress-inner {
+    background-color: #374151;
+  }
+}
+
+/* Transition for smooth color changes */
+.register-card .ant-input,
+.register-card .ant-input-password input,
+.register-card .ant-radio-button-wrapper,
+.register-card .ant-btn-primary {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}

@@ -1,0 +1,71 @@
+/* Header.css */
+.site-header {
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 999;
+}
+
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1400px;
+  margin: 0 auto;
+  height: 64px;
+}
+
+.header-logo {
+  cursor: pointer;
+  font-weight: bold;
+  color: #1890ff;
+  margin-right: 40px;
+}
+
+.header-logo h2 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.header-menu {
+  flex: 1;
+  border: none;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+}
+
+.user-dropdown {
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.user-dropdown:hover {
+  background-color: #f0f0f0;
+}
+
+.username {
+  font-weight: 500;
+  color: #262626;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header-menu {
+    display: none;
+  }
+
+  .header-container {
+    padding: 0 16px;
+  }
+
+  .username {
+    display: none;
+  }
+}

@@ -1,0 +1,41 @@
+.subscriptions-page {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.pricing-card {
+  transition: all 0.3s ease;
+  border-radius: 8px;
+}
+
+.pricing-card:hover {
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+}
+
+.pricing-card.popular {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.pricing-card.popular h3,
+.pricing-card.popular ul li {
+  color: white;
+}
+
+.pricing-card.popular ul li svg {
+  color: #ffeb3b;
+}
+
+.pricing-card ul li {
+  display: flex;
+  align-items: center;
+  color: rgba(0, 0, 0, 0.65);
+}
+
+.pricing-card ul li svg {
+  color: #52c41a;
+  margin-right: 8px;
+  flex-shrink: 0;
+}

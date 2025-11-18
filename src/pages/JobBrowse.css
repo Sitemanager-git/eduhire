@@ -1,0 +1,186 @@
+.job-browse-container {
+	max-width: 1400px;
+	margin: 0 auto;
+	padding: 24px;
+	background: #f5f5f5;
+	min-height: 100vh;
+}
+
+.browse-header {
+	text-align: center;
+	margin-bottom: 32px;
+	padding: 24px 0;
+}
+
+.page-title {
+	font-size: 32px;
+	font-weight: bold;
+	color: #1890ff;
+	margin-bottom: 8px;
+}
+
+.page-subtitle {
+	font-size: 16px;
+	color: #666;
+}
+
+.filter-card {
+	margin-bottom: 24px;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.salary-filter {
+	padding: 16px;
+	background: #f9f9f9;
+	border-radius: 8px;
+}
+
+.results-header {
+	margin-bottom: 24px;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.results-count {
+	font-size: 16px;
+	font-weight: 500;
+	color: #333;
+}
+
+.loading-container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	min-height: 400px;
+}
+
+/* Grid View */
+.jobs-container.grid-view .job-card {
+	height: 100%;
+}
+
+/* List View */
+.jobs-container.list-view .job-card {
+	margin-bottom: 16px;
+}
+
+.list-card {
+	display: flex;
+	flex-direction: row !important;
+}
+
+	.list-card .job-card-header {
+		flex: 1;
+	}
+
+	.list-card .job-card-body {
+		display: flex;
+		gap: 24px;
+	}
+
+/* Job Card Styles */
+.job-card {
+	transition: all 0.3s ease;
+	cursor: pointer;
+	border-radius: 8px;
+}
+
+	.job-card:hover {
+		box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+		transform: translateY(-4px);
+	}
+
+.job-card-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	margin-bottom: 16px;
+	padding-bottom: 12px;
+	border-bottom: 1px solid #f0f0f0;
+}
+
+.job-title {
+	font-size: 18px;
+	font-weight: 600;
+	color: #1890ff;
+	margin: 0;
+	flex: 1;
+}
+
+.job-badge {
+	padding: 4px 12px;
+	border-radius: 12px;
+	font-size: 12px;
+	font-weight: 500;
+	text-transform: capitalize;
+}
+
+	.job-badge.full-time {
+		background: #e6f7ff;
+		color: #1890ff;
+	}
+
+	.job-badge.part-time {
+		background: #fff7e6;
+		color: #fa8c16;
+	}
+
+	.job-badge.contract {
+		background: #f6ffed;
+		color: #52c41a;
+	}
+
+.job-card-body {
+	margin-bottom: 16px;
+}
+
+.institution-name {
+	font-size: 16px;
+	color: #333;
+	margin-bottom: 12px;
+}
+
+.job-detail {
+	font-size: 14px;
+	color: #666;
+	line-height: 1.6;
+}
+
+	.job-detail .label {
+		font-weight: 500;
+		color: #333;
+	}
+
+.job-card-footer {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding-top: 12px;
+	border-top: 1px solid #f0f0f0;
+}
+
+.posted-date {
+	font-size: 12px;
+	color: #999;
+}
+
+.pagination-container {
+	display: flex;
+	justify-content: center;
+	margin-top: 32px;
+	padding: 24px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+	.job-browse-container {
+		padding: 16px;
+	}
+
+	.page-title {
+		font-size: 24px;
+	}
+
+	.jobs-container.grid-view .job-card {
+		margin-bottom: 16px;
+	}
+}
