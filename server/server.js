@@ -59,6 +59,7 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const savedSearchRoutes = require('./routes/savedSearchRoutes');
 const bookmarkRoutes = require('./routes/bookmarkRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 // ============ ROUTE REGISTRATION ============
 // IMPORTANT: Register routes AFTER middleware setup
@@ -77,6 +78,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/saved-searches', savedSearchRoutes);
 app.use('/api/bookmarks', bookmarkRoutes);
+app.use('/api/admin', adminRoutes);
 
 // ============ DATABASE CONNECTION ============
 const uri = process.env.MONGO_URI;
@@ -249,6 +251,7 @@ let server;
             console.log('  ✓ /api/notifications');
             console.log('  ✓ /api/saved-searches');
             console.log('  ✓ /api/bookmarks');
+            console.log('  ✓ /api/admin'); 
             console.log('');
         });
 
