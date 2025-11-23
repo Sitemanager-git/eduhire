@@ -1,0 +1,219 @@
+.job-detail-container {
+	max-width: 1400px;
+	margin: 0 auto;
+	padding: 24px;
+	background: #f5f5f5;
+	min-height: 100vh;
+}
+
+.loading-container,
+.error-container {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	min-height: 400px;
+	gap: 16px;
+}
+
+/* Job Header Card */
+.job-header-card {
+	margin-bottom: 24px;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.job-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	gap: 24px;
+}
+
+.job-title-main {
+	font-size: 28px;
+	font-weight: bold;
+	color: #1890ff;
+	margin-bottom: 8px;
+}
+
+.institution-name-main {
+	font-size: 18px;
+	color: #333;
+	margin-bottom: 16px;
+	font-weight: 500;
+}
+
+.job-header-actions {
+	display: flex;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.job-tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 16px;
+}
+
+/* Section Cards */
+.section-card {
+	margin-bottom: 24px;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.job-description,
+.job-requirements {
+	font-size: 15px;
+	line-height: 1.8;
+	color: #333;
+}
+
+	.job-requirements h4 {
+		font-size: 16px;
+		font-weight: 600;
+		color: #1890ff;
+		margin-top: 16px;
+		margin-bottom: 8px;
+	}
+
+/* Institution Info */
+.institution-info h3 {
+	font-size: 22px;
+	font-weight: bold;
+	color: #333;
+	margin-bottom: 8px;
+}
+
+.institution-type {
+	margin-bottom: 16px;
+}
+
+.institution-description {
+	font-size: 15px;
+	line-height: 1.8;
+	color: #666;
+	margin: 16px 0;
+}
+
+.info-item {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 16px;
+	background: #f9f9f9;
+	border-radius: 8px;
+}
+
+.info-icon {
+	font-size: 24px;
+	color: #1890ff;
+}
+
+.info-label {
+	font-size: 12px;
+	color: #999;
+	text-transform: uppercase;
+}
+
+.info-value {
+	font-size: 20px;
+	font-weight: bold;
+	color: #333;
+}
+
+.contact-info h4 {
+	font-size: 16px;
+	font-weight: 600;
+	margin-bottom: 12px;
+}
+
+.contact-info a {
+	color: #1890ff;
+}
+
+/* Sidebar */
+.sidebar-card {
+	margin-bottom: 24px;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Similar Jobs */
+.similar-jobs-list {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.similar-job-card {
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+
+	.similar-job-card:hover {
+		box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+	}
+
+.similar-job-title {
+	font-size: 14px;
+	font-weight: 600;
+	color: #1890ff;
+	margin-bottom: 4px;
+}
+
+.similar-job-institution {
+	font-size: 13px;
+	color: #666;
+	margin-bottom: 8px;
+}
+
+.similar-job-details {
+	display: flex;
+	gap: 4px;
+	margin-bottom: 8px;
+}
+
+.similar-job-location {
+	font-size: 12px;
+	color: #999;
+	margin: 0;
+}
+
+/* Quick Actions */
+.quick-actions {
+	position: sticky;
+	top: 24px;
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+	.job-header {
+		flex-direction: column;
+	}
+
+	.job-header-actions {
+		width: 100%;
+	}
+
+		.job-header-actions button {
+			flex: 1;
+		}
+
+	.quick-actions {
+		position: static;
+	}
+}
+
+@media (max-width: 768px) {
+	.job-detail-container {
+		padding: 16px;
+	}
+
+	.job-title-main {
+		font-size: 22px;
+	}
+
+	.institution-name-main {
+		font-size: 16px;
+	}
+}

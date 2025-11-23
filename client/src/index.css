@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom admin styles */
+@layer components {
+  .admin-sidebar {
+    @apply bg-gradient-to-b from-blue-900 to-blue-800 text-white;
+  }
+  
+  .admin-button {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200;
+  }
+  
+  .admin-button-primary {
+    @apply bg-blue-600 text-white hover:bg-blue-700;
+  }
+  
+  .admin-card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-100 p-6;
+  }
+  
+  .admin-stat-card {
+    @apply bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow;
+  }
+}

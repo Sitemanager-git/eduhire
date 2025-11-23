@@ -1,0 +1,30 @@
+# Eduhire Robots.txt
+# Defines rules for search engine crawlers
+
+# Allow all crawlers by default
+User-agent: *
+Allow: /
+
+# Disallow sensitive pages
+Disallow: /admin/
+Disallow: /api/
+Disallow: /*.json$
+Disallow: /node_modules/
+Disallow: /.env
+
+# Crawl delay (milliseconds) - respect server resources
+Crawl-delay: 1
+
+# Allow Google
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0.5
+
+# Allow Bing
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 0.5
+
+# Sitemap location
+Sitemap: https://eduhire.com/sitemap.xml
+Sitemap: https://eduhire.com/sitemap-jobs.xml
