@@ -22,7 +22,7 @@ import {
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import axios from 'axios';
+import { teacherAPI, institutionAPI, notificationAPI } from '../../services/api';
 import './UserAccountMenu.css';
 
 const UserAccountMenu = () => {
@@ -43,20 +43,26 @@ const UserAccountMenu = () => {
   const fetchProfileData = async () => {
     try {
       setLoadingProfile(true);
-      const token = localStorage.getItem('token');
-      const endpoint = user?.userType === 'teacher'
-        ? '/teachers/profile'
-        : '/institutions/profile';
+      let response;
+      
+      if (user?.userType === 'teacher') {
+        response = await teacherAPI.get();
+      } else if (user?.userType === 'institution') {
+        response = await institutionAPI.get();
+      }
 
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}${endpoint}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      if (response.data.profile) {
-        setProfileData(response.data.profile);
+      if (response?.data) {
+        setProfileData(response.data);
       }
     } catch (error) {
       console.error('Failed to fetch profile data:', error);
+      // Handle different error scenarios gracefully
+      if (error.response?.status === 404) {
+        console.warn(`${user?.userType} profile not found - user may need to create one`);
+      } else if (error.response?.status === 400) {
+        console.warn('Profile validation error:', error.response?.data?.error);
+      }
+      // Don't throw - allow component to continue rendering
     } finally {
       setLoadingProfile(false);
     }
@@ -64,13 +70,8 @@ const UserAccountMenu = () => {
 
   const fetchNotificationCount = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${process.env.REACT_APP_API_URL}/notifications/unread-count`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (response.data.count !== undefined) {
+      const response = await notificationAPI.getUnreadCount();
+      if (response?.data?.count !== undefined) {
         setNotificationCount(response.data.count);
       }
     } catch (error) {

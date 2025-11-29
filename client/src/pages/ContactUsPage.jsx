@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, message, Card, Row, Col, Space } from 'antd';
 import { MailOutlined, PhoneOutlined, EnvironmentOutlined, LinkedinOutlined, TwitterOutlined, FacebookOutlined, InstagramOutlined } from '@ant-design/icons';
-import axios from 'axios';
+import { supportAPI } from '../services/api';
 import useSEO from '../hooks/useSEO';
 import '../styles/contact.css';
 
@@ -19,18 +19,14 @@ const ContactUsPage = () => {
   const onFinish = async (values) => {
     setLoading(true);
     try {
-      // Send to backend
-      await axios.post(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/support/contact`,
-        {
-          name: values.name,
-          email: values.email,
-          phone: values.phone,
-          subject: values.subject,
-          message: values.message,
-          category: values.category
-        }
-      );
+      await supportAPI.createTicket({
+        name: values.name,
+        email: values.email,
+        phone: values.phone,
+        subject: values.subject,
+        message: values.message,
+        category: values.category
+      });
       message.success('Thank you! We received your message and will get back to you soon.');
       form.resetFields();
     } catch (error) {

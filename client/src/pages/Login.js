@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Form, Input, Button, Card, message, Checkbox } from 'antd';
+import { Form, Input, Button, Card, message, Checkbox, Alert } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -17,6 +17,7 @@ const Login = () => {
     const { login, isAuthenticated, userType } = useAuth();
     const [loading, setLoading] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
+    const [error, setError] = useState(null);
 
     // Auto-redirect if already authenticated
     useEffect(() => {
@@ -40,6 +41,7 @@ const Login = () => {
 
     const handleSubmit = async (values) => {
         setLoading(true);
+        setError(null);
 
         try {
             const response = await authAPI.login({
@@ -71,6 +73,7 @@ const Login = () => {
                 error.response?.data?.message ||
                 'Login failed. Please check your credentials.';
 
+            setError(errorMessage);
             message.error(errorMessage);
         } finally {
             setLoading(false);
@@ -92,6 +95,18 @@ const Login = () => {
                     <h1>Welcome Back!</h1>
                     <p>Login to your Eduhire account</p>
                 </div>
+
+                {error && (
+                    <Alert
+                        message="Login Failed"
+                        description={error}
+                        type="error"
+                        showIcon
+                        closable
+                        onClose={() => setError(null)}
+                        style={{ marginBottom: '20px' }}
+                    />
+                )}
 
                 <Form
                     name="login"

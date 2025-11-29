@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { LayoutDashboard, Users, Briefcase, MessageSquare, CreditCard, Settings, LogOut, Menu, X } from 'lucide-react';
+import { adminAPI } from '../../services/api';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -31,19 +32,9 @@ const AdminDashboard = () => {
       
       console.log('Fetching admin dashboard stats...');
       
-      const res = await fetch('http://localhost:5000/api/admin/dashboard/stats', {
-        method: 'GET',
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const res = await adminAPI.getStats();
       
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      
-      const data = await res.json();
+      const data = res.data;
       console.log('Dashboard stats received:', data);
       
       if (data.success && data.stats) {

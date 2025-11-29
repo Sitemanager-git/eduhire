@@ -42,6 +42,16 @@ router.get('/my', authenticate, applicationController.getMyApplications);
  */
 router.delete('/:id', authenticate, applicationController.withdrawApplication);
 
+/**
+ * PUT /api/applications/:id
+ * Update application status (generic endpoint for accept/reject/pending)
+ * Requires: Valid JWT token (institution)
+ * Params: { id = applicationId }
+ * Body: { status = 'pending' | 'shortlisted' | 'rejected' }
+ * Returns: { success, message, application }
+ */
+router.put('/:id', authenticate, applicationController.updateApplicationStatus);
+
 // ================================================
 // INSTITUTION ROUTES (Manage received applications)
 // ================================================

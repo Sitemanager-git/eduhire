@@ -17,8 +17,13 @@ const jwt = require('jsonwebtoken');
  */
 const authenticate = (req, res, next) => {
   try {
+    console.log('🔐 [AUTH] Request to:', req.path);
+    console.log('🔐 [AUTH] Method:', req.method);
+    
     // Get token from Authorization header using Express method (case-insensitive)
     const authHeader = req.header('Authorization');
+    
+    console.log('🔐 [AUTH] Authorization header:', authHeader ? 'Present' : 'Missing');
     
     if (!authHeader) {
       return res.status(401).json({ 
@@ -50,6 +55,14 @@ const authenticate = (req, res, next) => {
     
     // Verify JWT token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = {
+      id: decoded.id,
+      email: decoded.email,
+      userType: decoded.userType
+    };
+    console.log('🔐 [AUTH] Token decoded successfully');
+    console.log('🔐 [AUTH] User ID:', decoded.id);
+    console.log('🔐 [AUTH] User type:', decoded.userType);
     
     // Attach user data to request
     // Contains: id, email, userType, iat (issued at), exp (expires)
@@ -59,7 +72,7 @@ const authenticate = (req, res, next) => {
     next();
     
   } catch (err) {
-    console.error('Authentication error:', err.message);
+    console.error('❌ [AUTH] Authentication error:', err.message);
     
     // Handle different JWT error types with specific messages
     if (err.name === 'TokenExpiredError') {

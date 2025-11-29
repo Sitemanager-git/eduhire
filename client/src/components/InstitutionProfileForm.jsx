@@ -1,5 +1,4 @@
 import { Modal } from 'antd';
-import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import {
     Form,
@@ -34,8 +33,6 @@ import {
     SECTIONS_OFFERED
 } from '../constants/formData';
 import './InstitutionProfileForm.css';
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 const { Step } = Steps;
 const { Option } = Select;
@@ -72,9 +69,11 @@ const InstitutionProfileForm = () => {
     const fetchDistricts = async (state) => {
         try {
             const response = await locationAPI.getDistricts(state);
-            setDistricts(response.data.districts);
+            setDistricts(response.data.districts || []);
             form.setFieldsValue({ district: undefined });
-        } catch {
+        } catch (error) {
+            console.error('Could not load districts:', error);
+            setDistricts([]);
             message.error('Could not load districts');
         }
     };
@@ -480,18 +479,8 @@ const InstitutionProfileForm = () => {
                 return;
             }
 
-            // Send to backend
-            const response = await axios.post(
-                `${API_BASE_URL}/institutions/profile`,
-                profileData,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    timeout: 15000
-                }
-            );
+            // Send to backend using API service
+            const response = await institutionAPI.create(profileData);
 
             console.log('✓ Success response:', response.data);
 

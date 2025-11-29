@@ -2,6 +2,15 @@
 const mongoose = require('mongoose');
 
 const TeacherProfileSchema = new mongoose.Schema({
+    // User Reference (Primary lookup field)
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+        unique: true,
+        index: true
+    },
+
     // Personal Info
     fullName: {
         type: String,

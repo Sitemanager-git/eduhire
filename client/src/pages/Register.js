@@ -53,22 +53,34 @@ const Register = () => {
         } catch (error) {
             console.error('Registration error:', error);
             let errorMessage = 'Registration failed. Please try again.';
-            if (error.response && error.response.status === 400) {
-                const err = error.response.data?.error || error.response.data?.message || '';
-                if (err.includes('Email already registered')) {
-                    errorMessage = 'This email is already associated with an account.';
-                } else if (err.includes('Invalid email format')) {
-                    errorMessage = 'Please enter a valid email address.';
-                } else if (err.includes('Password must be at least 6 characters')) {
-                    errorMessage = 'Password must be at least 6 characters long.';
-                } else if (err.includes('User type must be either teacher or institution')) {
-                    errorMessage = 'Please select a valid user type.';
-                } else if (err.includes('Email, password, and user type are required')) {
-                    errorMessage = 'All fields are required.';
-                } else {
-                    errorMessage = err || errorMessage;
-                }
+            
+            // Extract error from response
+            const errorData = error.response?.data;
+            const errorText = errorData?.error || errorData?.message || error.message || '';
+            
+            // Handle specific error messages
+            if (errorText.toLowerCase().includes('email already registered')) {
+                errorMessage = 'This email is already associated with an account. Please use a different email or try logging in.';
+            } else if (errorText.toLowerCase().includes('invalid email format')) {
+                errorMessage = 'Please enter a valid email address.';
+            } else if (errorText.toLowerCase().includes('password must be at least 6 characters')) {
+                errorMessage = 'Password must be at least 6 characters long.';
+            } else if (errorText.toLowerCase().includes('user type must be either teacher or institution')) {
+                errorMessage = 'Please select a valid user type.';
+            } else if (errorText.toLowerCase().includes('email, password, and user type are required')) {
+                errorMessage = 'All fields are required.';
+            } else if (errorText) {
+                // Use the actual error message from backend if it doesn't match above patterns
+                errorMessage = errorText;
             }
+            
+            // Log detailed error info for debugging
+            console.log('Error Details:', {
+                status: error.response?.status,
+                data: errorData,
+                message: errorMessage
+            });
+            
             message.error(errorMessage);
         } finally {
             setLoading(false);

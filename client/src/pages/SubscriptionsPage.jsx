@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import {
   Card,
   Row,
@@ -15,10 +14,7 @@ import {
   Tag,
 } from 'antd';
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons';
-
-const { Title, Paragraph } = Typography;
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+import { paymentAPI } from '../services/api';
 
 /**
  * Subscription Tiers Configuration
@@ -105,17 +101,7 @@ const FAQS = [
   },
 ];
 
-/**
- * Get authorization headers with Bearer token
- */
-function getAuthHeaders() {
-  const token = localStorage.getItem('token');
-  return {
-    headers: {
-      Authorization: token ? `Bearer ${token}` : '',
-    },
-  };
-}
+const { Title, Paragraph } = Typography;
 
 /**
  * SubscriptionsPage Component
@@ -139,10 +125,7 @@ const SubscriptionsPage = () => {
   async function fetchCurrentSubscription() {
     try {
       setLoading(true);
-      const response = await axios.get(
-        `${API_BASE_URL}/payments/current-subscription`,
-        getAuthHeaders()
-      );
+      const response = await paymentAPI.getCurrentSubscription();
       const planType = response.data?.subscription?.planType || 'free';
       setCurrentPlan(planType);
       console.log('✓ Current subscription:', planType);
@@ -167,11 +150,7 @@ const SubscriptionsPage = () => {
     setProcessingPlan(planType);
     try {
       console.log('📤 Creating order for plan:', planType);
-      const response = await axios.post(
-        `${API_BASE_URL}/payments/create-order`,
-        { planType },
-        getAuthHeaders()
-      );
+      const response = await paymentAPI.createOrder(planType);
 
       const order = response.data?.order;
       if (!order) {
@@ -235,15 +214,11 @@ const SubscriptionsPage = () => {
   async function verifyPayment(response) {
     try {
       console.log('🔍 Verifying payment...');
-      const verifyResponse = await axios.post(
-        `${API_BASE_URL}/payments/verify-payment`,
-        {
-          razorpayOrderId: response.razorpay_order_id,
-          razorpayPaymentId: response.razorpay_payment_id,
-          razorpaySignature: response.razorpay_signature,
-        },
-        getAuthHeaders()
-      );
+      const verifyResponse = await paymentAPI.verifyPayment({
+        razorpayOrderId: response.razorpay_order_id,
+        razorpayPaymentId: response.razorpay_payment_id,
+        razorpaySignature: response.razorpay_signature,
+      });
 
       if (verifyResponse.data?.success) {
         console.log('✓ Payment verified successfully');

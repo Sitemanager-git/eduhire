@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Button, Form, Input, Upload, Avatar, Row, Col, message, Spin } from 'antd';
+import { Card, Button, Form, Input, Upload, Avatar, Row, Col, message, Spin, Modal } from 'antd';
 import { CameraOutlined, SaveOutlined } from '@ant-design/icons';
 import { useAuth } from '../context/AuthContext';
 import { teacherAPI, institutionAPI } from '../services/api';
@@ -10,6 +10,9 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(false);
   const [profileData, setProfileData] = useState(null);
   const [form] = Form.useForm();
+  const [uploading, setUploading] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -49,6 +52,53 @@ const ProfilePage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  /**
+   * Handle profile picture upload
+   */
+  const handleProfilePictureUpload = async (file) => {
+    try {
+      setUploading(true);
+      
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append('profilePicture', file);
+
+      let response;
+      if (user?.userType === 'teacher') {
+        response = await teacherAPI.update(formData);
+      } else {
+        response = await institutionAPI.update(formData);
+      }
+
+      if (response.data?.profilePicture) {
+        setProfileData(prev => ({
+          ...prev,
+          profilePicture: response.data.profilePicture
+        }));
+        message.success('✓ Profile picture updated successfully');
+      }
+    } catch (error) {
+      console.error('❌ Picture upload error:', error);
+      const errorMsg = error.response?.data?.message || 'Failed to upload picture';
+      message.error(errorMsg);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  /**
+   * Handle preview image
+   */
+  const handlePreviewImage = (file) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      setPreviewImage(reader.result);
+      setPreviewOpen(true);
+    };
+    return false;
   };
 
   /**
@@ -145,8 +195,32 @@ const ProfilePage = () => {
                 icon={<CameraOutlined />}
                 style={{ marginBottom: '16px' }}
               />
-              <Upload maxCount={1}>
-                <Button icon={<CameraOutlined />}>Change Picture</Button>
+              <Upload
+                maxCount={1}
+                beforeUpload={(file) => {
+                  // Validate file type
+                  const isImage = file.type.startsWith('image/');
+                  if (!isImage) {
+                    message.error('Please upload an image file');
+                    return false;
+                  }
+                  // Validate file size (max 5MB)
+                  if (file.size > 5 * 1024 * 1024) {
+                    message.error('Image must be smaller than 5MB');
+                    return false;
+                  }
+                  return true;
+                }}
+                onChange={(info) => {
+                  if (info.file.status === 'done' || info.fileList.length > 0) {
+                    const file = info.fileList[0]?.originFileObj;
+                    if (file) {
+                      handleProfilePictureUpload(file);
+                    }
+                  }
+                }}
+              >
+                <Button icon={<CameraOutlined />} loading={uploading}>Change Picture</Button>
               </Upload>
             </div>
           </Col>
@@ -168,7 +242,7 @@ const ProfilePage = () => {
               <Form.Item
                 name="email"
                 label="Email"
-                rules={[{ required: true, type: 'email' }]}
+                rules={[{ type: 'email' }]}
               >
                 <Input disabled />
               </Form.Item>
@@ -208,6 +282,16 @@ const ProfilePage = () => {
           </Col>
         </Row>
       </Card>
+
+      {/* Image Preview Modal */}
+      <Modal 
+        open={previewOpen} 
+        title="Preview" 
+        footer={null}
+        onCancel={() => setPreviewOpen(false)}
+      >
+        <img alt="preview" style={{ width: '100%' }} src={previewImage} />
+      </Modal>
     </div>
   );
 };

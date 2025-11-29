@@ -19,15 +19,13 @@ import {
   HeartOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { bookmarkAPI } from '../services/api';
 
 const SavedJobs = () => {
   const navigate = useNavigate();
   const [savedJobs, setSavedJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterCategory, setFilterCategory] = useState('interested');
-
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
   // Fetch saved jobs whenever filter category changes
   useEffect(() => {
@@ -36,13 +34,9 @@ const SavedJobs = () => {
     const loadSavedJobs = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem('token');
 
-        const response = await axios.get(`${API_BASE_URL}/bookmarks/my`, {
-          params: { category: filterCategory },
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
+        const response = await bookmarkAPI.getAll();
+        
         if (isMounted && response.data.success) {
           setSavedJobs(response.data.bookmarks);
         }
@@ -63,15 +57,11 @@ const SavedJobs = () => {
     return () => {
       isMounted = false; // Prevent setState on unmounted component
     };
-  }, [filterCategory, API_BASE_URL]);
+  }, [filterCategory]);
 
   const handleRemoveBookmark = async (jobId) => {
     try {
-      const token = localStorage.getItem('token');
-
-      await axios.delete(`${API_BASE_URL}/bookmarks/${jobId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await bookmarkAPI.remove(jobId);
 
       setSavedJobs(prev => prev.filter(job => job.jobId._id !== jobId));
       message.success('Bookmark removed');

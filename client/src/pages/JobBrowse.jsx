@@ -8,13 +8,16 @@ import {
   UnorderedListOutlined, DollarOutlined 
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
+import ProfileCompletionAlert from '../components/ProfileCompletionAlert';
+import { jobAPI } from '../services/api';
 import './JobBrowse.css';
 
 const { Option } = Select;
 
 const JobBrowse = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, userType, user } = useAuth();
 
   // State management
   const [jobs, setJobs] = useState([]);
@@ -57,7 +60,7 @@ const JobBrowse = () => {
         )
       };
 
-      const response = await axios.get('http://localhost:5000/api/jobs/search', { params });
+      const response = await jobAPI.search(params);
 
       setJobs(response.data.jobs);
       setPagination(response.data.pagination);
@@ -121,6 +124,13 @@ const JobBrowse = () => {
           Find your perfect teaching position from {pagination.totalJobs} available opportunities
         </p>
       </div>
+
+      {/* Profile Completion Alert for Teachers */}
+      {isAuthenticated && userType === 'teacher' && (
+        <div style={{ marginBottom: '24px' }}>
+          <ProfileCompletionAlert user={user} userType={userType} />
+        </div>
+      )}
 
       {/* Search and Filter Section */}
       <Card className="filter-card">

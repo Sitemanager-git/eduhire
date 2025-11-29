@@ -30,13 +30,14 @@ import {
 import { useNavigate } from 'react-router-dom';
 import useSEO from '../hooks/useSEO';
 import { useAuth } from '../context/AuthContext';
+import ProfileCompletionAlert from '../components/ProfileCompletionAlert';
 import './EnhancedLandingPage.css';
 
 const { Content } = Layout;
 
 const EnhancedLandingPage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAuthenticated, userType } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [loginModalVisible, setLoginModalVisible] = useState(false);
 
@@ -74,21 +75,21 @@ const EnhancedLandingPage = () => {
 
   const features = [
     {
-      icon: <SearchOutlined />,
-      title: 'Advanced Search',
-      description: 'Find jobs by subject, location, level, and more with advanced filters',
+      icon: <ShopOutlined />,
+      title: 'Quality Jobs',
+      description: 'Curated positions from verified educational institutions',
       color: '#1890ff'
     },
     {
-      icon: <RocketOutlined />,
-      title: 'Fast Hiring',
-      description: 'Quick application process and instant notifications for opportunities',
+      icon: <SearchOutlined />,
+      title: 'Easy Search',
+      description: 'Advanced filters to find jobs by subject, location, level, and more',
       color: '#52c41a'
     },
     {
-      icon: <SafetyOutlined />,
-      title: 'Verified Institutions',
-      description: 'All institutions are verified to ensure your safety and security',
+      icon: <RocketOutlined />,
+      title: 'Fast Application',
+      description: 'One-click application with pre-filled resume and information',
       color: '#faad14'
     },
     {
@@ -105,8 +106,8 @@ const EnhancedLandingPage = () => {
     },
     {
       icon: <FileTextOutlined />,
-      title: 'Easy Application',
-      description: 'One-click application with pre-filled resume and information',
+      title: 'Track Progress',
+      description: 'Monitor your applications and job performance analytics',
       color: '#722ed1'
     }
   ];
@@ -216,6 +217,13 @@ const EnhancedLandingPage = () => {
       </Modal>
 
       <Content>
+        {/* Profile Completion Alert for Teachers */}
+        {isAuthenticated && userType === 'teacher' && (
+          <div style={{ padding: '0 20px', marginBottom: '24px', marginTop: '24px' }}>
+            <ProfileCompletionAlert user={user} userType={userType} />
+          </div>
+        )}
+
         {/* ============ HERO SECTION ============ */}
         <section className="hero-section">
           <div className="hero-background" />
@@ -333,6 +341,88 @@ const EnhancedLandingPage = () => {
 
         <Divider className="section-divider" />
 
+        {/* ============ FOR TEACHERS SECTION ============ */}
+        <section className="for-teachers-section">
+          <Row gutter={[32, 32]} align="middle">
+            <Col xs={24} lg={12}>
+              <h2 className="section-title">For Teachers</h2>
+              <ul className="features-list">
+                <li>✓ Search and apply to teaching positions instantly</li>
+                <li>✓ Create professional profiles with credentials</li>
+                <li>✓ Save favorite jobs for later review</li>
+                <li>✓ Track application status in real-time</li>
+                <li>✓ Receive notifications about relevant opportunities</li>
+                <li>✓ View institution reviews and teacher ratings</li>
+              </ul>
+              <Space size="middle" wrap style={{ marginTop: '24px' }}>
+                <Button 
+                  type="primary" 
+                  size="large"
+                  icon={<ArrowRightOutlined />}
+                  onClick={() => navigate('/jobs')}
+                >
+                  Start Searching
+                </Button>
+                <Button 
+                  size="large"
+                  onClick={() => handleGetStarted('teacher')}
+                >
+                  Create Profile
+                </Button>
+              </Space>
+            </Col>
+            <Col xs={24} lg={12}>
+              <div className="section-image-placeholder">
+                <div style={{ fontSize: '64px', marginBottom: '16px' }}>👨‍🏫</div>
+                <p>Join thousands of teachers finding their perfect opportunity</p>
+              </div>
+            </Col>
+          </Row>
+        </section>
+
+        <Divider className="section-divider" />
+
+        {/* ============ FOR INSTITUTIONS SECTION ============ */}
+        <section className="for-institutions-section">
+          <Row gutter={[32, 32]} align="middle">
+            <Col xs={24} lg={12}>
+              <div className="section-image-placeholder">
+                <div style={{ fontSize: '64px', marginBottom: '16px' }}>🏫</div>
+                <p>Recruit talented teachers for your institution</p>
+              </div>
+            </Col>
+            <Col xs={24} lg={12}>
+              <h2 className="section-title">For Institutions</h2>
+              <ul className="features-list">
+                <li>✓ Post and manage teaching positions easily</li>
+                <li>✓ Review detailed teacher profiles and credentials</li>
+                <li>✓ Manage applications efficiently</li>
+                <li>✓ Featured job listings for maximum visibility</li>
+                <li>✓ Detailed analytics and hiring insights</li>
+                <li>✓ Bulk hiring tools for large recruitment</li>
+              </ul>
+              <Space size="middle" wrap style={{ marginTop: '24px' }}>
+                <Button 
+                  type="primary" 
+                  size="large"
+                  icon={<ArrowRightOutlined />}
+                  onClick={() => navigate('/post-job')}
+                >
+                  Post a Job
+                </Button>
+                <Button 
+                  size="large"
+                  onClick={() => handleGetStarted('institution')}
+                >
+                  Register Institution
+                </Button>
+              </Space>
+            </Col>
+          </Row>
+        </section>
+
+        <Divider className="section-divider" />
+
         {/* ============ HOW IT WORKS SECTION ============ */}
         <section className="how-it-works-section">
           <div className="section-header">
@@ -344,27 +434,32 @@ const EnhancedLandingPage = () => {
             {[
               {
                 step: '1',
-                title: 'Create Profile',
-                description: 'Sign up and build your complete teacher profile with resume and qualifications'
+                title: 'Sign Up',
+                description: 'Create your profile in just a few minutes'
               },
               {
                 step: '2',
                 title: 'Search & Apply',
-                description: 'Browse jobs that match your criteria and apply with one click'
+                description: 'Browse thousands of job opportunities and apply with one click'
               },
               {
                 step: '3',
-                title: 'Get Hired',
-                description: 'Interview with schools and accept the perfect opportunity'
+                title: 'Get Matched',
+                description: 'Connect with the perfect institutions for your skills'
+              },
+              {
+                step: '4',
+                title: 'Succeed',
+                description: 'Land your dream teaching job and advance your career'
               }
             ].map((item, index) => (
-              <Col key={index} xs={24} md={8}>
+              <Col key={index} xs={24} md={6}>
                 <div className="how-it-works-card">
                   <div className="step-number">{item.step}</div>
                   <h3>{item.title}</h3>
                   <p>{item.description}</p>
                 </div>
-                {index < 2 && (
+                {index < 3 && (
                   <div className="step-arrow">
                     <ArrowRightOutlined />
                   </div>

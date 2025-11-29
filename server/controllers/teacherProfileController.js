@@ -16,6 +16,11 @@ const Subscription = require('../models/Subscription');
  */
 exports.getProfile = async (req, res) => {
   try {
+    console.log('🔍 [DEBUG] getProfile called');
+    console.log('🔍 [DEBUG] req.user:', req.user);
+    console.log('🔍 [DEBUG] req.path:', req.path);
+    console.log('🔍 [DEBUG] req.method:', req.method);
+    
     const userId = req.user.id;
 
     console.log('📖 [Teachers] Getting profile for user:', userId);
@@ -30,11 +35,24 @@ exports.getProfile = async (req, res) => {
       });
     }
 
-    // Get teacher profile
-    const teacherProfile = await TeacherProfile.findOne({ userId: userId });
+    // Get teacher profile by userId (primary lookup)
+    let teacherProfile = await TeacherProfile.findOne({ userId: userId });
+
+    // Fallback: Try email lookup for legacy profiles
+    if (!teacherProfile && user.email) {
+      console.log('📖 [Teachers] Trying email-based lookup for legacy profile');
+      teacherProfile = await TeacherProfile.findOne({ email: user.email });
+      
+      // Update legacy profile to use userId for future lookups
+      if (teacherProfile) {
+        teacherProfile.userId = userId;
+        await teacherProfile.save();
+        console.log('✓ Updated legacy profile to use userId');
+      }
+    }
 
     if (!teacherProfile) {
-      console.warn('⚠️  Teacher profile not found');
+      console.warn('⚠️  Teacher profile not found for userId:', userId);
       return res.status(404).json({
         error: 'Profile not found',
         message: 'Teacher profile does not exist yet'
@@ -68,8 +86,165 @@ exports.getProfile = async (req, res) => {
 
   } catch (error) {
     console.error('❌ Error in getProfile:', error.message);
+    console.error('❌ Stack:', error.stack);
     res.status(500).json({
       error: 'Failed to fetch profile',
+      message: error.message
+    });
+  }
+};
+
+/**
+ * @desc    Create Teacher Profile
+ * @route   POST /api/teachers/profile
+ * @access  Private (Teacher only)
+ * @contract Request: { name, subject, experience, qualifications, languages?, about?, certifications? }
+ * @contract Response: { name, email, subject, experience, qualifications, profilePicture }
+ */
+exports.createProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    console.log('📝 [Teachers] Creating profile for user:', userId);
+
+    // Verify user is teacher
+    const user = await User.findById(userId);
+    if (!user || user.userType !== 'teacher') {
+      console.warn('⚠️  User is not a teacher');
+      return res.status(403).json({
+        error: 'Access denied',
+        message: 'Only teachers can create their profile'
+      });
+    }
+
+    // Check if profile already exists (by userId, not email)
+    const existingProfile = await TeacherProfile.findOne({ userId: userId });
+    if (existingProfile) {
+      console.warn('⚠️  Profile already exists for user');
+      return res.status(400).json({
+        error: 'Profile already exists',
+        message: 'Teacher profile already created. Use PUT to update.'
+      });
+    }
+
+    // Validate required fields
+    if (!req.body.fullName && !req.body.name) {
+      return res.status(400).json({
+        error: 'Missing required field',
+        message: 'Full name is required'
+      });
+    }
+
+    if (!req.body.phone) {
+      return res.status(400).json({
+        error: 'Missing required field',
+        message: 'Phone number is required'
+      });
+    }
+
+    // Validate resume is uploaded
+    if (!req.files || !req.files.resume) {
+      console.warn('⚠️  Resume file not uploaded');
+      return res.status(400).json({
+        error: 'Missing required file',
+        message: 'Resume file is required'
+      });
+    }
+
+    // Parse location if it's a JSON string
+    let locationData = req.body.location;
+    if (typeof locationData === 'string') {
+      try {
+        locationData = JSON.parse(locationData);
+      } catch (e) {
+        console.error('Failed to parse location:', e);
+        return res.status(400).json({
+          error: 'Invalid location format',
+          message: 'Location must be valid JSON'
+        });
+      }
+    }
+
+    if (!locationData || !locationData.state || !locationData.district || !locationData.pincode) {
+      return res.status(400).json({
+        error: 'Missing required field',
+        message: 'Location details (state, district, pincode) are required'
+      });
+    }
+
+    if (!req.body.education) {
+      return res.status(400).json({
+        error: 'Missing required field',
+        message: 'Education details are required'
+      });
+    }
+
+    // Parse subjects if it's a JSON string
+    let subjects = req.body.subjects || [];
+    if (typeof subjects === 'string') {
+      try {
+        subjects = JSON.parse(subjects);
+      } catch (e) {
+        subjects = subjects.split(',').map(s => s.trim());
+      }
+    }
+
+    // Get file paths from uploaded files
+    const resumePath = req.files.resume ? req.files.resume[0].path : null;
+    const photoPath = req.files.photo ? req.files.photo[0].path : null;
+
+    if (resumePath) console.log('📄 Resume uploaded:', resumePath.split('/').pop());
+    if (photoPath) console.log('📸 Photo uploaded:', photoPath.split('/').pop());
+
+    // Create new teacher profile with all fields from model
+    const profileData = {
+      userId: userId,
+      fullName: req.body.fullName || req.body.name,
+      email: user.email,
+      phone: req.body.phone,
+      location: {
+        state: locationData.state,
+        district: locationData.district,
+        pincode: locationData.pincode
+      },
+      education: req.body.education,
+      experience: req.body.experience || 0,
+      subjects: subjects,
+      otherSubjects: req.body.otherSubjects || '',
+      resume: resumePath,
+      photo: photoPath,
+      profileCompleted: true
+    };
+
+    const teacherProfile = new TeacherProfile(profileData);
+    await teacherProfile.save();
+
+    // Also update user record with profile complete flag
+    user.profileComplete = true;
+    await user.save();
+
+    console.log('✅ Teacher profile created successfully');
+
+    // Return response with contract fields
+    const response = {
+      name: teacherProfile.fullName,
+      email: teacherProfile.email,
+      subject: teacherProfile.subjects.join(', ') || 'Not specified',
+      experience: teacherProfile.experience,
+      qualifications: teacherProfile.education,
+      profilePicture: teacherProfile.photo || null
+    };
+
+    res.status(201).json({
+      success: true,
+      message: 'Profile created successfully',
+      profile: response
+    });
+  } catch (error) {
+    console.error('❌ Error in createProfile:', error.message);
+    console.error('❌ Stack trace:', error.stack);
+    res.status(500).json({
+      error: 'Failed to create profile',
       message: error.message
     });
   }
@@ -104,8 +279,20 @@ exports.updateProfile = async (req, res) => {
       });
     }
 
-    // Get existing teacher profile or create new one
+    // Get existing teacher profile by userId (primary lookup)
     let teacherProfile = await TeacherProfile.findOne({ userId: userId });
+
+    // Fallback: Try email lookup for legacy profiles
+    if (!teacherProfile && user.email) {
+      console.log('📖 [Teachers] Trying email-based lookup for legacy profile');
+      teacherProfile = await TeacherProfile.findOne({ email: user.email });
+      
+      // Update legacy profile to use userId for future lookups
+      if (teacherProfile) {
+        teacherProfile.userId = userId;
+        console.log('✓ Updated legacy profile to use userId');
+      }
+    }
 
     if (!teacherProfile) {
       console.log('📝 Creating new teacher profile...');
@@ -202,8 +389,20 @@ exports.uploadProfilePicture = async (req, res) => {
       });
     }
 
-    // Get teacher profile
+    // Get teacher profile by userId (primary lookup)
     let teacherProfile = await TeacherProfile.findOne({ userId: userId });
+
+    // Fallback: Try email lookup for legacy profiles
+    if (!teacherProfile && user.email) {
+      console.log('📖 [Teachers] Trying email-based lookup for legacy profile');
+      teacherProfile = await TeacherProfile.findOne({ email: user.email });
+      
+      // Update legacy profile to use userId for future lookups
+      if (teacherProfile) {
+        teacherProfile.userId = userId;
+        console.log('✓ Updated legacy profile to use userId');
+      }
+    }
 
     if (!teacherProfile) {
       teacherProfile = new TeacherProfile({

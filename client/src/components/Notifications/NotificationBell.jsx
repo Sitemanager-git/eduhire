@@ -15,7 +15,7 @@ import {
   CheckOutlined,
   DeleteOutlined
 } from '@ant-design/icons';
-import axios from 'axios';
+import { notificationAPI } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 import './NotificationBell.css';
 
@@ -26,44 +26,39 @@ const NotificationBell = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const navigate = useNavigate();
+  const MAX_RETRIES = 3;
 
   useEffect(() => {
     fetchNotifications();
-    // Poll for new notifications every 30 seconds
-    const interval = setInterval(fetchNotifications, 30000);
+    // Poll for new notifications every 60 seconds (increased from 30s)
+    const interval = setInterval(fetchNotifications, 60000);
     return () => clearInterval(interval);
   }, []);
 
   const fetchNotifications = async () => {
     try {
-      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-      const token = localStorage.getItem('token');
-      
-      const response = await axios.get(
-        `${API_BASE_URL}/notifications?limit=10`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await notificationAPI.getAll({ limit: 10 });
 
       if (response.data.success) {
         setNotifications(response.data.notifications);
         setUnreadCount(response.data.unreadCount);
+        setRetryCount(0); // Reset on success
       }
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      // Stop polling after MAX_RETRIES failures
+      if (retryCount >= MAX_RETRIES) {
+        console.warn('⚠️ Notifications unavailable after 3 attempts - polling stopped');
+        return;
+      }
+      setRetryCount(retryCount + 1);
     }
   };
 
   const markAsRead = async (notificationId) => {
     try {
-      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-      const token = localStorage.getItem('token');
-      
-      await axios.put(
-        `${API_BASE_URL}/notifications/${notificationId}/read`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await notificationAPI.markAsRead(notificationId);
 
       // Update local state
       setNotifications(prev => 
@@ -82,14 +77,7 @@ const NotificationBell = () => {
   const markAllAsRead = async () => {
     try {
       setLoading(true);
-      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-      const token = localStorage.getItem('token');
-      
-      await axios.put(
-        `${API_BASE_URL}/notifications/read-all`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await notificationAPI.markAllAsRead();
 
       // Update local state
       setNotifications(prev => 
@@ -105,13 +93,7 @@ const NotificationBell = () => {
 
   const deleteNotification = async (notificationId) => {
     try {
-      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-      const token = localStorage.getItem('token');
-      
-      await axios.delete(
-        `${API_BASE_URL}/notifications/${notificationId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await notificationAPI.delete(notificationId);
 
       // Update local state
       setNotifications(prev => 
@@ -270,11 +252,11 @@ const NotificationBell = () => {
 
   return (
     <Dropdown
-      overlay={notificationMenu}
+      dropdownRender={() => notificationMenu}
       trigger={['click']}
       placement="bottomRight"
-      visible={dropdownVisible}
-      onVisibleChange={setDropdownVisible}
+      open={dropdownVisible}
+      onOpenChange={setDropdownVisible}
     >
       <Badge count={unreadCount} overflowCount={99}>
         <Button 

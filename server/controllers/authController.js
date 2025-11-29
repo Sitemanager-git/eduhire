@@ -159,8 +159,8 @@ exports.login = async (req, res) => {
     
     if (!user) {
       return res.status(401).json({ 
-        error: 'Invalid credentials',
-        message: 'Email or password is incorrect'
+        error: 'User not found',
+        message: 'No account exists with this email address. Please register first.'
       });
     }
     
@@ -186,8 +186,8 @@ exports.login = async (req, res) => {
     
     if (!isMatch) {
       return res.status(401).json({ 
-        error: 'Invalid credentials',
-        message: 'Email or password is incorrect'
+        error: 'Invalid password',
+        message: 'The password you entered is incorrect.'
       });
     }
     

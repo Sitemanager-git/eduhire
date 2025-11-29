@@ -26,6 +26,7 @@ import {
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { teacherAPI, locationAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { SUBJECT_OPTIONS } from '../constants/formData';
 import './TeacherProfileForm.css';
 
@@ -43,6 +44,7 @@ const TeacherProfileForm = () => {
   const [resumeFile, setResumeFile] = useState(null);
   const [photoFile, setPhotoFile] = useState(null);
   const navigate = useNavigate();
+  const { user, updateUser } = useAuth();
 
   const [form] = Form.useForm();
 
@@ -63,15 +65,17 @@ const TeacherProfileForm = () => {
   const fetchDistricts = async (state) => {
     try {
       const response = await locationAPI.getDistricts(state);
-      setDistricts(response.data.districts);
+      setDistricts(response.data.districts || []);
     } catch (error) {
+      console.error('Failed to load districts:', error);
+      setDistricts([]);
       message.error('Failed to load districts');
     }
   };
 
   const handleStateChange = (state) => {
     form.setFieldsValue({ district: undefined });
-    setDistricts([]);
+    // Fetch districts and ensure state is updated before component re-renders
     fetchDistricts(state);
   };
 
@@ -239,26 +243,32 @@ const TeacherProfileForm = () => {
       multiple: false,
       accept: '.pdf,.doc,.docx',
       beforeUpload: (file) => {
+        console.log('📁 [TeacherProfileForm] Resume file selected:', file.name, `(${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+        
         const isPDF = file.type === 'application/pdf';
         const isDoc =
           file.type === 'application/msword' ||
           file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
         if (!isPDF && !isDoc) {
+          console.error('❌ Invalid file type:', file.type);
           message.error('You can only upload PDF or DOC files!');
           return Upload.LIST_IGNORE;
         }
 
         const isLt5M = file.size / 1024 / 1024 < 5;
         if (!isLt5M) {
+          console.error('❌ File too large:', file.size / 1024 / 1024, 'MB');
           message.error('File must be smaller than 5MB!');
           return Upload.LIST_IGNORE;
         }
 
+        console.log('✅ Resume file validation passed');
         setResumeFile(file);
         return false;
       },
       onRemove: () => {
+        console.log('🗑️ Resume file removed');
         setResumeFile(null);
       },
       fileList: resumeFile ? [resumeFile] : []
@@ -269,22 +279,28 @@ const TeacherProfileForm = () => {
       multiple: false,
       accept: 'image/*',
       beforeUpload: (file) => {
+        console.log('📁 [TeacherProfileForm] Photo file selected:', file.name, `(${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+        
         const isImage = file.type.startsWith('image/');
         if (!isImage) {
+          console.error('❌ Invalid image type:', file.type);
           message.error('You can only upload image files!');
           return Upload.LIST_IGNORE;
         }
 
         const isLt2M = file.size / 1024 / 1024 < 2;
         if (!isLt2M) {
+          console.error('❌ Image too large:', file.size / 1024 / 1024, 'MB');
           message.error('Image must be smaller than 2MB!');
           return Upload.LIST_IGNORE;
         }
 
+        console.log('✅ Photo file validation passed');
         setPhotoFile(file);
         return false;
       },
       onRemove: () => {
+        console.log('🗑️ Photo file removed');
         setPhotoFile(null);
       },
       fileList: photoFile ? [photoFile] : []
@@ -339,8 +355,28 @@ const TeacherProfileForm = () => {
   const handleSubmit = async () => {
       try {
           setLoading(true);
+          console.log('🚀 [TeacherProfileForm] Submit button clicked');
+
+          // IMPORTANT: Validate all form fields first
+          try {
+              await form.validateFields();
+          } catch (validationError) {
+              console.error('❌ Form validation failed');
+              message.error('Please fill all required fields correctly');
+              setLoading(false);
+              return;
+          }
+
+          // Check if resume is uploaded (required)
+          if (!resumeFile) {
+              console.error('Resume not uploaded');
+              message.error('Please upload your resume before submitting');
+              setLoading(false);
+              return;
+          }
 
           const values = form.getFieldsValue();
+          
           const finalData = new FormData();
 
           // Append text fields
@@ -379,11 +415,41 @@ const TeacherProfileForm = () => {
           // Dismiss loading message
           message.destroy('submitLoading');
 
+          // Update user context with profile data from response
+          if (user && response.data?.profile) {
+              const profileData = response.data.profile;
+              const updatedUser = {
+                  ...user,
+                  profileComplete: true,
+                  profileCompleted: true,
+                  fullName: profileData.name || profileData.fullName,
+                  subject: profileData.subject,
+                  qualifications: profileData.qualifications,
+                  experience: profileData.experience,
+                  resume: profileData.resume || 'uploaded',
+                  profilePicture: profileData.profilePicture
+              };
+              updateUser(updatedUser);
+              console.log('✓ User context updated with profile data:', updatedUser);
+          } else if (user) {
+              const updatedUser = {
+                  ...user,
+                  profileComplete: true,
+                  profileCompleted: true
+              };
+              updateUser(updatedUser);
+              console.log('✓ User context updated with completion flags:', updatedUser);
+          }
+
           // Show success message
           message.success({
               content: ' Profile created successfully!',
               duration: 2
           });
+
+          // Verify localStorage was updated
+          const storedUser = localStorage.getItem('user');
+          console.log('📦 localStorage after updateUser:', storedUser ? JSON.parse(storedUser) : 'NOT SET');
 
           // Show success modal
           Modal.success({
@@ -401,9 +467,22 @@ const TeacherProfileForm = () => {
           });
 
       } catch (error) {
-          console.error('Submission error:', error);
+          console.error('❌ Submission error:', error.message);
           message.destroy('submitLoading');
-          message.error(error.response?.data?.error || 'Failed to create profile');
+          
+          // Provide specific error messages based on status code
+          let errorMessage = 'Failed to create profile';
+          if (error.response?.status === 400) {
+            errorMessage = error.response?.data?.error || 'Invalid profile data. Please check your entries and ensure all required fields are filled.';
+          } else if (error.response?.status === 404) {
+            errorMessage = 'Server endpoint not found. Please contact support.';
+          } else if (error.response?.status === 422) {
+            errorMessage = error.response?.data?.message || 'Profile validation error. Please complete all required fields.';
+          } else if (error.response?.status === 500) {
+            errorMessage = 'Server error. Please try again later.';
+          }
+          
+          message.error(errorMessage);
       } finally {
           setLoading(false);
       }

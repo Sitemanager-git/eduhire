@@ -6,14 +6,22 @@ const cloudinary = require('../config/cloudinary');
 const storage = new CloudinaryStorage({
     cloudinary,
     params: (req, file) => {
+        console.log('📤 [Cloudinary] Preparing upload for:', file.fieldname);
+        console.log('📤 [Cloudinary] File name:', file.originalname);
+        console.log('📤 [Cloudinary] MIME type:', file.mimetype);
+        
         const folder = file.fieldname === 'resume' ? 'eduhire/resumes' : 'eduhire/photos';
-        const allowedFormats = ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'];
+        
+        // Use 'raw' resource_type for documents, 'image' for photos
+        const resourceType = file.fieldname === 'resume' ? 'raw' : 'image';
 
-        return {
+        const params = {
             folder,
-            resource_type: 'auto',
-            allowed_formats: allowedFormats
+            resource_type: resourceType
         };
+        
+        console.log('📤 [Cloudinary] Upload params:', JSON.stringify(params));
+        return params;
     }
 });
 

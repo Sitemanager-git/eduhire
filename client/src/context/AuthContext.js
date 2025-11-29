@@ -88,6 +88,17 @@ export const AuthProvider = ({ children }) => {
     };
 
     /**
+     * Update user function
+     * Updates user data in state and localStorage
+     */
+    const updateUser = (userData) => {
+        console.log("📝 Updating user data");
+        setUser(userData);
+        localStorage.setItem("user", JSON.stringify(userData));
+        console.log("✓ User data updated");
+    };
+
+    /**
      * Logout function
      * Clears all authentication data from state and localStorage
      */
@@ -117,7 +128,8 @@ export const AuthProvider = ({ children }) => {
         loading,
         userType: user?.userType || null,
         login,
-        logout
+        logout,
+        updateUser
     };
 
     // Show loading spinner while initializing

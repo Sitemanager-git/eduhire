@@ -1,0 +1,1 @@
+﻿{"success":true,"message":"Profile created successfully","profile":{"name":"Test Teacher","email":"teacherqwe1@outlook.com","subject":"[Math, Science]","experience":5,"qualifications":"B.Ed","profilePicture":"https://res.cloudinary.com/dh9b4jgx1/image/upload/v1764431549/eduhire/photos/upypyeqewi8vlgxakbdz.jpg"}}

@@ -8,7 +8,7 @@ import {
   StarOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { jobAPI } from '../../services/api';
 
 const FeaturedJobs = () => {
   const [featuredJobs, setFeaturedJobs] = useState([]);
@@ -22,10 +22,7 @@ const FeaturedJobs = () => {
   const fetchFeaturedJobs = async () => {
     try {
       setLoading(true);
-      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-      const response = await axios.get(`${API_BASE_URL}/jobs/featured`, {
-        params: { limit: 6 }
-      });
+      const response = await jobAPI.search({ limit: 6, featured: true });
       
       if (response.data.success) {
         setFeaturedJobs(response.data.jobs);

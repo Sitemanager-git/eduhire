@@ -68,103 +68,143 @@ const Header = () => {
     }
   };
 
-  const desktopMenu = (
-    <Menu mode="horizontal" onClick={handleMenuClick} className="header-menu">
-      <Menu.Item key="home" icon={<HomeOutlined />}>
-        Home
-      </Menu.Item>
-      <Menu.Item key="jobs" icon={<ShopOutlined />}>
-        Browse Jobs
-      </Menu.Item>
-      {user?.userType === 'teacher' && (
-        <>
-          <Menu.Item key="my-applications">
-            My Applications
-          </Menu.Item>
-          <Menu.Item key="saved-jobs">
-            Saved Jobs
-          </Menu.Item>
-        </>
-      )}
-      {user?.userType === 'institution' && (
-        <>
-          <Menu.Item key="post-job">
-            Post Job
-          </Menu.Item>
-          <Menu.Item key="my-jobs">
-            My Jobs
-          </Menu.Item>
-        </>
-      )}
-      {user && (
-        <Menu.Item key="dashboard">
-          Dashboard
-        </Menu.Item>
-      )}
-    </Menu>
-  );
+  // Desktop menu items configuration
+  const getDesktopMenuItems = () => {
+    const items = [
+      {
+        key: 'home',
+        icon: <HomeOutlined />,
+        label: 'Home'
+      },
+      {
+        key: 'jobs',
+        icon: <ShopOutlined />,
+        label: 'Browse Jobs'
+      }
+    ];
 
-  const mobileMenu = (
-    <Menu onClick={(e) => {
-        handleMenuClick(e);
-        setMobileDrawerVisible(false);
-      }}>
-      <Menu.Item key="home" icon={<HomeOutlined />}>
-        Home
-      </Menu.Item>
-      <Menu.Item key="jobs" icon={<ShopOutlined />}>
-        Browse Jobs
-      </Menu.Item>
-      {user?.userType === 'teacher' && (
-        <>
-          <Menu.Item key="my-applications">
-            My Applications
-          </Menu.Item>
-          <Menu.Item key="saved-jobs">
-            Saved Jobs
-          </Menu.Item>
-        </>
-      )}
-      {user?.userType === 'institution' && (
-        <>
-          <Menu.Item key="post-job">
-            Post Job
-          </Menu.Item>
-          <Menu.Item key="my-jobs">
-            My Jobs
-          </Menu.Item>
-        </>
-      )}
-      {user && (
-        <Menu.Item key="dashboard">
-          Dashboard
-        </Menu.Item>
-      )}
-      <Menu.Divider />
-      {user ? (
-        <>
-          <Menu.Item key="profile" icon={<UserOutlined />}>
-            My Profile
-          </Menu.Item>
-          <Menu.Item key="settings" icon={<SettingOutlined />}>
-            Settings
-          </Menu.Item>
-          <Menu.Item key="logout" icon={<LogoutOutlined />} danger>
-            Logout
-          </Menu.Item>
-        </>
-      ) : (
-        <>
-          <Menu.Item onClick={() => navigate('/login')}>
-            Login
-          </Menu.Item>
-          <Menu.Item onClick={() => navigate('/register')}>
-            Register
-          </Menu.Item>
-        </>
-      )}
-    </Menu>
-  );
+    if (user?.userType === 'teacher') {
+      items.push(
+        {
+          key: 'my-applications',
+          label: 'My Applications'
+        },
+        {
+          key: 'saved-jobs',
+          label: 'Saved Jobs'
+        }
+      );
+    }
+
+    if (user?.userType === 'institution') {
+      items.push(
+        {
+          key: 'post-job',
+          label: 'Post Job'
+        },
+        {
+          key: 'my-jobs',
+          label: 'My Jobs'
+        }
+      );
+    }
+
+    if (user) {
+      items.push({
+        key: 'dashboard',
+        label: 'Dashboard'
+      });
+    }
+
+    return items;
+  };
+
+  // Mobile menu items configuration
+  const getMobileMenuItems = () => {
+    const items = [
+      {
+        key: 'home',
+        icon: <HomeOutlined />,
+        label: 'Home'
+      },
+      {
+        key: 'jobs',
+        icon: <ShopOutlined />,
+        label: 'Browse Jobs'
+      }
+    ];
+
+    if (user?.userType === 'teacher') {
+      items.push(
+        {
+          key: 'my-applications',
+          label: 'My Applications'
+        },
+        {
+          key: 'saved-jobs',
+          label: 'Saved Jobs'
+        }
+      );
+    }
+
+    if (user?.userType === 'institution') {
+      items.push(
+        {
+          key: 'post-job',
+          label: 'Post Job'
+        },
+        {
+          key: 'my-jobs',
+          label: 'My Jobs'
+        }
+      );
+    }
+
+    if (user) {
+      items.push({
+        key: 'dashboard',
+        label: 'Dashboard'
+      });
+    }
+
+    items.push({ type: 'divider' });
+
+    if (user) {
+      items.push(
+        {
+          key: 'profile',
+          icon: <UserOutlined />,
+          label: 'My Profile'
+        },
+        {
+          key: 'settings',
+          icon: <SettingOutlined />,
+          label: 'Settings'
+        },
+        {
+          key: 'logout',
+          icon: <LogoutOutlined />,
+          label: 'Logout',
+          danger: true
+        }
+      );
+    } else {
+      items.push(
+        {
+          key: 'login',
+          label: 'Login',
+          onClick: () => navigate('/login')
+        },
+        {
+          key: 'register',
+          label: 'Register',
+          onClick: () => navigate('/register')
+        }
+      );
+    }
+
+    return items;
+  };
 
   return (
     <AntHeader className="site-header">
@@ -176,7 +216,12 @@ const Header = () => {
 
         {/* Desktop Navigation Menu */}
         <div className="header-menu-wrapper">
-          {desktopMenu}
+          <Menu 
+            mode="horizontal" 
+            onClick={handleMenuClick} 
+            className="header-menu"
+            items={getDesktopMenuItems()}
+          />
         </div>
 
         {/* Right Side - Notifications & User Menu */}
@@ -208,7 +253,13 @@ const Header = () => {
         open={mobileDrawerVisible}
         bodyStyle={{ padding: 0 }}
       >
-        {mobileMenu}
+        <Menu 
+          onClick={(e) => {
+            handleMenuClick(e);
+            setMobileDrawerVisible(false);
+          }}
+          items={getMobileMenuItems()}
+        />
       </Drawer>
     </AntHeader>
   );

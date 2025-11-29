@@ -13,7 +13,7 @@ import {
 } from '@ant-design/icons';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
+import { jobAPI } from '../services/api';
 import ReviewList from '../components/ReviewList';
 import WriteReview from '../components/WriteReview';
 import './TeacherProfile.css';
@@ -39,7 +39,7 @@ const TeacherProfile = () => {
     }
     setLoading(true);
     try {
-      const response = await axios.get(`http://localhost:5000/api/teachers/${id}`);
+      const response = await jobAPI.getById(id);
       setProfile(response.data.profile);
     } catch (error) {
       console.error('Failed to fetch teacher profile:', error);

@@ -10,6 +10,13 @@ const { authenticate } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 const teacherProfileController = require('../controllers/teacherProfileController');
 
+console.log('📚 [ROUTES] Teaching routes file loaded');
+
+// Debug route
+router.get('/debug', (req, res) => {
+    res.json({ message: 'Teacher routes working', timestamp: new Date() });
+});
+
 /**
  * GET /api/teachers/profile
  * Get current teacher profile
@@ -17,6 +24,18 @@ const teacherProfileController = require('../controllers/teacherProfileControlle
  * Access: Private (Teacher only)
  */
 router.get('/profile', authenticate, teacherProfileController.getProfile);
+
+/**
+ * POST /api/teachers/profile
+ * Create new teacher profile
+ * Contract Request: { name, subject, experience, qualifications, languages?, about?, certifications? }
+ * Contract Response: { name, email, subject, experience, qualifications, profilePicture }
+ * Access: Private (Teacher only)
+ */
+router.post('/profile', authenticate, upload.fields([
+    { name: 'resume', maxCount: 1 },
+    { name: 'photo', maxCount: 1 }
+]), teacherProfileController.createProfile);
 
 /**
  * PUT /api/teachers/profile

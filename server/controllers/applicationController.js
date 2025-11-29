@@ -41,7 +41,17 @@ exports.submitApplication = async (req, res) => {
         }
 
         // Get teacher profile
-        const teacherProfile = await TeacherProfile.findOne({ email: user.email });
+        let teacherProfile = await TeacherProfile.findOne({ userId: userId });
+        
+        // Fallback: Try email lookup for legacy profiles
+        if (!teacherProfile && user.email) {
+            teacherProfile = await TeacherProfile.findOne({ email: user.email });
+            if (teacherProfile) {
+                teacherProfile.userId = userId;
+                await teacherProfile.save();
+            }
+        }
+        
         if (!teacherProfile) {
             return res.status(404).json({
                 error: 'Teacher profile not found. Please complete your profile first.'
@@ -118,20 +128,6 @@ exports.submitApplication = async (req, res) => {
             details: error.message
         });
     }
-    try {
-        await createNotification({
-            userId: institutionProfile.userId, // Get userId from institution
-            type: 'application_received',
-            title: 'New Application Received',
-            message: `${teacher.fullName} applied for ${job.title}`,
-            relatedJobId: jobId,
-            relatedApplicationId: application._id,
-            actionUrl: `/applications-received?jobId=${jobId}`
-        });
-    } catch (notifError) {
-        console.error('Failed to create notification:', notifError);
-        // Don't fail the application if notification fails
-    }
 };
 
 /**
@@ -151,7 +147,7 @@ exports.getMyApplications = async (req, res) => {
             });
         }
 
-        const teacherProfile = await TeacherProfile.findOne({ email: user.email });
+        const teacherProfile = await TeacherProfile.findOne({ userId: userId });
         if (!teacherProfile) {
             return res.status(404).json({
                 error: 'Teacher profile not found'
@@ -205,7 +201,17 @@ exports.withdrawApplication = async (req, res) => {
             });
         }
 
-        const teacherProfile = await TeacherProfile.findOne({ email: user.email });
+        let teacherProfile = await TeacherProfile.findOne({ userId: userId });
+        
+        // Fallback: Try email lookup for legacy profiles
+        if (!teacherProfile && user.email) {
+            teacherProfile = await TeacherProfile.findOne({ email: user.email });
+            if (teacherProfile) {
+                teacherProfile.userId = userId;
+                await teacherProfile.save();
+            }
+        }
+        
         if (!teacherProfile) {
             return res.status(404).json({
                 error: 'Teacher profile not found'
@@ -279,7 +285,17 @@ exports.getApplicationsForJob = async (req, res) => {
         }
 
         // Get institution profile
-        const institutionProfile = await InstitutionProfile.findOne({ email: user.email });
+        let institutionProfile = await InstitutionProfile.findOne({ userId: userId });
+        
+        // Fallback: Try email lookup for legacy profiles
+        if (!institutionProfile && user.email) {
+            institutionProfile = await InstitutionProfile.findOne({ email: user.email });
+            if (institutionProfile) {
+                institutionProfile.userId = userId;
+                await institutionProfile.save();
+            }
+        }
+        
         if (!institutionProfile) {
             return res.status(404).json({
                 error: 'Institution profile not found'
@@ -342,7 +358,17 @@ exports.getAllReceivedApplications = async (req, res) => {
             });
         }
 
-        const institutionProfile = await InstitutionProfile.findOne({ email: user.email });
+        let institutionProfile = await InstitutionProfile.findOne({ userId: userId });
+        
+        // Fallback: Try email lookup for legacy profiles
+        if (!institutionProfile && user.email) {
+            institutionProfile = await InstitutionProfile.findOne({ email: user.email });
+            if (institutionProfile) {
+                institutionProfile.userId = userId;
+                await institutionProfile.save();
+            }
+        }
+        
         if (!institutionProfile) {
             return res.status(404).json({
                 error: 'Institution profile not found'
@@ -399,7 +425,17 @@ exports.shortlistApplication = async (req, res) => {
             });
         }
 
-        const institutionProfile = await InstitutionProfile.findOne({ email: user.email });
+        let institutionProfile = await InstitutionProfile.findOne({ userId: userId });
+        
+        // Fallback: Try email lookup for legacy profiles
+        if (!institutionProfile && user.email) {
+            institutionProfile = await InstitutionProfile.findOne({ email: user.email });
+            if (institutionProfile) {
+                institutionProfile.userId = userId;
+                await institutionProfile.save();
+            }
+        }
+        
         if (!institutionProfile) {
             return res.status(404).json({
                 error: 'Institution profile not found'
@@ -471,7 +507,17 @@ exports.rejectApplication = async (req, res) => {
             });
         }
 
-        const institutionProfile = await InstitutionProfile.findOne({ email: user.email });
+        let institutionProfile = await InstitutionProfile.findOne({ userId: userId });
+        
+        // Fallback: Try email lookup for legacy profiles
+        if (!institutionProfile && user.email) {
+            institutionProfile = await InstitutionProfile.findOne({ email: user.email });
+            if (institutionProfile) {
+                institutionProfile.userId = userId;
+                await institutionProfile.save();
+            }
+        }
+        
         if (!institutionProfile) {
             return res.status(404).json({
                 error: 'Institution profile not found'
@@ -507,6 +553,105 @@ exports.rejectApplication = async (req, res) => {
         console.error('Reject application error:', error);
         res.status(500).json({
             error: 'Failed to reject application',
+            details: error.message
+        });
+    }
+};
+
+/**
+ * @desc    Update application status (Institution)
+ * @route   PUT /api/applications/:id
+ * @access  Private (Institution only)
+ * @contract Maps to generic status update endpoint
+ */
+exports.updateApplicationStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+        const userId = req.user.id;
+
+        // Validate status
+        const validStatuses = ['pending', 'shortlisted', 'rejected'];
+        if (!status || !validStatuses.includes(status)) {
+            return res.status(400).json({
+                error: 'Invalid status. Must be one of: pending, shortlisted, rejected'
+            });
+        }
+
+        // Verify user is institution
+        const user = await User.findById(userId);
+        if (!user || user.userType !== 'institution') {
+            return res.status(403).json({
+                error: 'Access denied'
+            });
+        }
+
+        let institutionProfile = await InstitutionProfile.findOne({ userId: userId });
+        
+        // Fallback: Try email lookup for legacy profiles
+        if (!institutionProfile && user.email) {
+            institutionProfile = await InstitutionProfile.findOne({ email: user.email });
+            if (institutionProfile) {
+                institutionProfile.userId = userId;
+                await institutionProfile.save();
+            }
+        }
+        
+        if (!institutionProfile) {
+            return res.status(404).json({
+                error: 'Institution profile not found'
+            });
+        }
+
+        // Find application
+        const application = await Application.findById(id);
+        if (!application) {
+            return res.status(404).json({
+                error: 'Application not found'
+            });
+        }
+
+        // Verify application belongs to this institution
+        if (application.institution_id.toString() !== institutionProfile._id.toString()) {
+            return res.status(403).json({
+                error: 'You can only manage applications for your own jobs'
+            });
+        }
+
+        // Update status
+        application.status = status;
+        await application.save();
+
+        // Create notification for teacher
+        try {
+            const job = await Job.findById(application.job_id).select('title');
+            const teacher = await TeacherProfile.findById(application.teacher_id);
+            
+            if (teacher) {
+                await createNotification({
+                    userId: teacher.userId || teacher._id,
+                    type: 'application_status',
+                    title: 'Application Status Updated',
+                    message: `Your application for ${job?.title || 'job'} is now ${status}`,
+                    relatedApplicationId: application._id,
+                    actionUrl: '/my-applications'
+                });
+            }
+        } catch (notifError) {
+            console.error('Failed to create notification:', notifError);
+            // Don't fail the request if notification fails
+        }
+
+        res.json({
+            success: true,
+            message: `Application status updated to ${status}`,
+            application: application
+        });
+
+    } catch (error) {
+        console.error('Update application status error:', error);
+        res.status(500).json({
+            error: 'Failed to update application status',
             details: error.message
         });
     }

@@ -20,7 +20,7 @@ import {
   ArrowRightOutlined,
   ExclamationOutlined
 } from '@ant-design/icons';
-import axios from 'axios';
+import { dashboardAPI } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 
 // Mock data for development/fallback
@@ -85,15 +85,6 @@ const TeacherDashboard = () => {
     try {
       setLoading(true);
       setErrorMessage('');
-      const API_BASE_URL = process.env.REACT_APP_API_URL;
-      
-      if (!API_BASE_URL) {
-        console.warn('API base URL not configured, using mock data');
-        setStats(getMockStats());
-        setUseMockData(true);
-        setLoading(false);
-        return;
-      }
       
       const token = localStorage.getItem('token');
       if (!token) {
@@ -104,10 +95,7 @@ const TeacherDashboard = () => {
         return;
       }
 
-      const response = await axios.get(`${API_BASE_URL}/dashboard/teacher-stats`, {
-        headers: { Authorization: `Bearer ${token}` },
-        timeout: 10000
-      });
+      const response = await dashboardAPI.getTeacherStats();
 
       if (response.data.success && response.data.stats) {
         setStats(response.data.stats);

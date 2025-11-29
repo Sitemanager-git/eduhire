@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import {
     Card, Row, Col, Button, Tag, Divider, Spin, message,
     Descriptions, Space, Modal, Input, Checkbox
-    , Alert
+    , Alert, Steps
 } from 'antd';
 import {
     HeartOutlined, HeartFilled, ShareAltOutlined,
     EnvironmentOutlined, CalendarOutlined, DollarOutlined,
     UserOutlined, BankOutlined, FileTextOutlined, 
-    CheckCircleOutlined, ClockCircleOutlined
+    CheckCircleOutlined, ClockCircleOutlined,
+    ExclamationOutlined
 } from '@ant-design/icons';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -19,6 +20,20 @@ import './JobDetail.css';
 
 const { TextArea } = Input;
 
+// Helper function to check if teacher profile is complete
+const isProfileComplete = (user) => {
+    if (!user) return false;
+    if (user.userType !== 'teacher') return false;
+    
+    const hasRequiredFields = 
+        user.fullName && 
+        user.subject && 
+        user.experience !== undefined && 
+        user.qualifications;
+    
+    return hasRequiredFields && user.profileComplete === true;
+};
+
 const JobDetail = () => {
         // State for application modal and cover letter
         const [showApplicationModal, setShowApplicationModal] = useState(false);
@@ -27,7 +42,7 @@ const JobDetail = () => {
         const [resumeUploaded, setResumeUploaded] = useState(true); // Assume true by default
     const { id } = useParams();
     const navigate = useNavigate();
-    const { isAuthenticated, userType } = useAuth();
+    const { isAuthenticated, userType, user } = useAuth();
     
     const [job, setJob] = useState(null);
     const [similarJobs, setSimilarJobs] = useState([]);
@@ -205,6 +220,34 @@ const JobDetail = () => {
                                         icon={<FileTextOutlined />}
                                         block
                                         onClick={() => {
+                                            // Check if profile is complete
+                                            if (!isProfileComplete(user)) {
+                                                Modal.confirm({
+                                                    title: '✨ Complete Your Profile',
+                                                    icon: <ExclamationOutlined />,
+                                                    content: (
+                                                        <div>
+                                                            <p style={{ marginBottom: '16px', fontSize: '15px' }}>
+                                                                To apply for jobs, you need to complete your teacher profile. This helps institutions learn more about you!
+                                                            </p>
+                                                            <Alert
+                                                                message="You're just a few steps away"
+                                                                description="Add your qualifications, experience, and subjects to get started."
+                                                                type="info"
+                                                                showIcon
+                                                                style={{ marginBottom: '16px' }}
+                                                            />
+                                                        </div>
+                                                    ),
+                                                    okText: 'Complete Profile',
+                                                    cancelText: 'Cancel',
+                                                    onOk() {
+                                                        navigate('/create-teacher-profile');
+                                                    }
+                                                });
+                                                return;
+                                            }
+
                                             if (!resumeUploaded) {
                                                 Modal.warning({
                                                     title: 'Resume Required',
@@ -212,7 +255,6 @@ const JobDetail = () => {
                                                         <div>
                                                             <p>You must upload your resume before applying for this job.</p>
                                                             <Button type="primary" style={{ marginTop: 16 }} onClick={() => {
-                                                                // Redirect to resume upload page (adjust route as needed)
                                                                 navigate('/profile?tab=resume');
                                                                 Modal.destroyAll();
                                                             }}>

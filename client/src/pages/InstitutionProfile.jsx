@@ -16,7 +16,7 @@ import {
 } from '@ant-design/icons';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
+import { jobAPI } from '../services/api';
 import ReviewList from '../components/ReviewList';
 import WriteReview from '../components/WriteReview';
 import './InstitutionProfile.css';
@@ -38,7 +38,7 @@ const InstitutionProfile = () => {
       if (!isMounted) return;
       
       setLoading(true);
-      const response = await axios.get(`http://localhost:5000/api/institutions/${id}`);
+      const response = await jobAPI.getById(id);
       
       if (isMounted) {
         setProfile(response.data.profile);

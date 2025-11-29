@@ -18,7 +18,7 @@ import {
   CheckCircleOutlined,
   ArrowRightOutlined
 } from '@ant-design/icons';
-import axios from 'axios';
+import { dashboardAPI } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 
 const InstitutionDashboard = () => {
@@ -33,13 +33,7 @@ const InstitutionDashboard = () => {
   const fetchDashboardStats = async () => {
     try {
       setLoading(true);
-      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-      const token = localStorage.getItem('token');
-
-      // FIXED: Correct template literal syntax and Bearer token
-      const response = await axios.get(`${API_BASE_URL}/dashboard/institution-stats`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await dashboardAPI.getInstitutionStats();
 
       if (response.data.success) {
         setStats(response.data.stats);

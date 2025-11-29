@@ -109,6 +109,114 @@
           "location": "string",
           "about": "string"
         }
+      },
+      "create_teacher_profile": {
+        "method": "POST",
+        "endpoint": "/api/teachers/profile",
+        "auth": "Bearer token",
+        "request": {
+          "name": "string (optional)",
+          "subject": "string (optional)",
+          "experience": "number (optional)",
+          "qualifications": "string (optional)"
+        },
+        "response": {
+          "_id": "ObjectId",
+          "name": "string",
+          "email": "string",
+          "subject": "string",
+          "experience": "number",
+          "qualifications": "string",
+          "profilePicture": "string (URL or null)"
+        }
+      },
+      "create_institution_profile": {
+        "method": "POST",
+        "endpoint": "/api/institutions/profile",
+        "auth": "Bearer token",
+        "request": {
+          "schoolName": "string (optional)",
+          "location": "string (optional)",
+          "about": "string (optional)"
+        },
+        "response": {
+          "_id": "ObjectId",
+          "name": "string",
+          "email": "string",
+          "schoolName": "string",
+          "location": "string",
+          "about": "string"
+        }
+      }
+    },
+    "applications": {
+      "apply_for_job": {
+        "method": "POST",
+        "endpoint": "/api/applications/apply",
+        "auth": "Bearer token",
+        "request": {
+          "job_id": "ObjectId (required)",
+          "coverLetter": "string (required, min 20 chars)"
+        },
+        "response": {
+          "success": "boolean",
+          "message": "string",
+          "application": {
+            "_id": "ObjectId",
+            "job_id": "ObjectId",
+            "teacher_id": "ObjectId",
+            "institution_id": "ObjectId",
+            "status": "string (pending|shortlisted|rejected)",
+            "coverLetter": "string",
+            "appliedAt": "Date"
+          }
+        }
+      },
+      "get_my_applications": {
+        "method": "GET",
+        "endpoint": "/api/applications/my",
+        "auth": "Bearer token",
+        "response": {
+          "success": "boolean",
+          "count": "number",
+          "applications": [
+            {
+              "_id": "ObjectId",
+              "job_id": "ObjectId",
+              "status": "string",
+              "appliedAt": "Date",
+              "coverLetter": "string"
+            }
+          ]
+        }
+      },
+      "update_application_status": {
+        "method": "PUT",
+        "endpoint": "/api/applications/:id",
+        "auth": "Bearer token",
+        "request": {
+          "status": "string (required: pending|shortlisted|rejected)"
+        },
+        "response": {
+          "success": "boolean",
+          "message": "string",
+          "application": {
+            "_id": "ObjectId",
+            "job_id": "ObjectId",
+            "teacher_id": "ObjectId",
+            "status": "string",
+            "appliedAt": "Date"
+          }
+        }
+      },
+      "withdraw_application": {
+        "method": "DELETE",
+        "endpoint": "/api/applications/:id",
+        "auth": "Bearer token",
+        "response": {
+          "success": "boolean",
+          "message": "string"
+        }
       }
     },
     "notifications": {

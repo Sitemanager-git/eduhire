@@ -144,6 +144,19 @@ exports.createOrUpdateProfile = async (req, res) => {
     // ========== CREATE OR UPDATE ==========
 
     let institutionProfile = await InstitutionProfile.findOne({ userId: userId });
+
+    // Fallback: Try email lookup for legacy profiles
+    if (!institutionProfile && user.email) {
+      console.log('📖 [Institutions] Trying email-based lookup for legacy profile');
+      institutionProfile = await InstitutionProfile.findOne({ email: user.email });
+      
+      // Update legacy profile to use userId for future lookups
+      if (institutionProfile) {
+        institutionProfile.userId = userId;
+        console.log('✓ Updated legacy profile to use userId');
+      }
+    }
+
     let isUpdate = false;
 
     if (institutionProfile) {
@@ -241,7 +254,20 @@ exports.getProfile = async (req, res) => {
     }
 
     // Get profile
-    const institutionProfile = await InstitutionProfile.findOne({ userId: userId });
+    let institutionProfile = await InstitutionProfile.findOne({ userId: userId });
+
+    // Fallback: Try email lookup for legacy profiles
+    if (!institutionProfile && user.email) {
+      console.log('📖 [Institutions] Trying email-based lookup for legacy profile');
+      institutionProfile = await InstitutionProfile.findOne({ email: user.email });
+      
+      // Update legacy profile to use userId for future lookups
+      if (institutionProfile) {
+        institutionProfile.userId = userId;
+        await institutionProfile.save();
+        console.log('✓ Updated legacy profile to use userId');
+      }
+    }
 
     if (!institutionProfile) {
       console.warn('⚠️  Institution profile not found');

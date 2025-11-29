@@ -35,36 +35,26 @@ import {
   InfoCircleOutlined,
   ExclamationCircleOutlined
 } from '@ant-design/icons';
-import axios from 'axios';
 import dayjs from 'dayjs';
-import { institutionAPI } from '../../services/api';
+import { institutionAPI, paymentAPI, jobAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 
 const { TextArea } = Input;
 const { Option } = Select;
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-
 /**
  * Check if user can post a job based on subscription limits
  */
-const checkJobPostingLimit = async (token) => {
-  const response = await axios.get(
-    `${API_BASE_URL}/payments/check-posting-limit`,
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
+const checkJobPostingLimit = async () => {
+  const response = await paymentAPI.checkPostingLimit();
   return response.data;
 };
 
 /**
  * Increment job posting count after successful submission
  */
-const incrementJobPostingCount = async (token) => {
-  const response = await axios.post(
-    `${API_BASE_URL}/payments/increment-posting-count`,
-    {},
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
+const incrementJobPostingCount = async () => {
+  const response = await paymentAPI.incrementPostingCount();
   return response.data;
 };
 
@@ -660,7 +650,7 @@ const JobPostForm = () => {
       // Check job posting limit
       setCheckingLimit(true);
       try {
-        const limitCheck = await checkJobPostingLimit(token);
+        const limitCheck = await checkJobPostingLimit();
         setCheckingLimit(false);
 
         if (!limitCheck.canPost) {
@@ -708,18 +698,13 @@ const JobPostForm = () => {
       console.log('📤 Submitting job data:', jobData);
 
       // Submit to backend
-      const response = await axios.post(`${API_BASE_URL}/jobs/create`, jobData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await jobAPI.create(jobData);
 
       console.log('✓ Job posted successfully:', response.data);
 
       // Increment job posting count
       try {
-        await incrementJobPostingCount(token);
+        await incrementJobPostingCount();
         console.log('✓ Posting count incremented');
       } catch (countError) {
         console.error('Error incrementing posting count:', countError);

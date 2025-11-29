@@ -9,9 +9,20 @@ console.log('🌐 API Base URL:', API_BASE_URL);
  */
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000, // 30 seconds
+  timeout: 30000, // 30 seconds for regular requests
   headers: {
     'Content-Type': 'application/json',
+  },
+});
+
+/**
+ * Create axios instance for file uploads with longer timeout
+ */
+const apiWithFileUpload = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 120000, // 120 seconds (2 minutes) for file uploads
+  headers: {
+    'Content-Type': 'multipart/form-data',
   },
 });
 
@@ -89,6 +100,52 @@ api.interceptors.response.use(
 );
 
 /**
+ * Request interceptor for file upload API - Attach token to every request
+ */
+apiWithFileUpload.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+      console.log('[API Upload Request]', config.method.toUpperCase(), config.url, '✓ Token attached');
+    } else {
+      console.warn('[API Upload Request]', config.method.toUpperCase(), config.url, '⚠️ No token');
+    }
+    return config;
+  },
+  (error) => {
+    console.error('[API Upload Request Error]', error);
+    return Promise.reject(error);
+  }
+);
+
+/**
+ * Response interceptor for file upload API
+ */
+apiWithFileUpload.interceptors.response.use(
+  (response) => {
+    console.log('[API Upload Response]', response.status, response.config.url, '✓ Success');
+    return response;
+  },
+  (error) => {
+    // Handle 401 Unauthorized
+    if (error.response?.status === 401) {
+      console.error('[API Upload Response] 401 Unauthorized - Clearing session');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('userType');
+      
+      if (window.location.pathname !== '/login' && window.location.pathname !== '/register') {
+        window.location.href = '/login';
+      }
+    }
+    
+    console.error('[API Upload Response Error]', error.response?.status, error.config?.url, error.message);
+    return Promise.reject(error);
+  }
+);
+
+/**
  * Contract Validation Helper
  * Validates that API responses match the expected contract structure
  * Logs warnings for missing fields but doesn't break functionality
@@ -127,9 +184,7 @@ export const authAPI = {
 
 // Teacher Profile API - ENFORCES API_CONTRACTS.json
 export const teacherAPI = {
-    create: (formData) => api.post('/teachers/profile', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-    }),
+    create: (formData) => apiWithFileUpload.post('/teachers/profile', formData),
     get: async () => {
       const response = await api.get('/teachers/profile');
       // Contract: name, email, subject, experience, qualifications, profilePicture, subscription
@@ -137,9 +192,7 @@ export const teacherAPI = {
       validateResponse(response.data, contractFields);
       return response;
     },
-    update: (formData) => api.put('/teachers/profile', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-    }),
+    update: (formData) => apiWithFileUpload.put('/teachers/profile', formData),
 };
 
 // Institution Profile API - ENFORCES API_CONTRACTS.json
@@ -273,6 +326,15 @@ export const dashboardAPI = {
     getInstitutionStats: () => api.get('/dashboard/institution-stats'),
 };
 
+// Payment API
+export const paymentAPI = {
+    checkPostingLimit: () => api.get('/payments/check-posting-limit'),
+    incrementPostingCount: () => api.post('/payments/increment-posting-count', {}),
+    createOrder: (planType) => api.post('/payments/create-order', { planType }),
+    verifyPayment: (data) => api.post('/payments/verify-payment', data),
+    getCurrentSubscription: () => api.get('/payments/current-subscription'),
+};
+
 export const locationAPI = {
     getStates: () => {
         return Promise.resolve({
@@ -289,6 +351,16 @@ export const locationAPI = {
             }
         });
     }
+};
+
+export const adminAPI = {
+    getStats: () => api.get('/admin/dashboard/stats'),
+    getUsers: (params) => api.get('/admin/users', { params }),
+    getJobs: (params) => api.get('/admin/jobs', { params }),
+    getApplications: (params) => api.get('/admin/applications', { params }),
+    getSupportTickets: (params) => api.get('/admin/support-tickets', { params }),
+    updateUserStatus: (userId, status) => api.put(`/admin/users/${userId}/status`, { status }),
+    updateJobStatus: (jobId, status) => api.put(`/admin/jobs/${jobId}/status`, { status }),
 };
 
 export default api;
